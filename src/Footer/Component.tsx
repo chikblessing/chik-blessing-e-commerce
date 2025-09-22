@@ -51,8 +51,9 @@ export async function Footer() {
               </Link>
 
               <p className="text-sm md:text-base font-medium text-[#00000099] leading-relaxed max-w-md">
-                Leading the infrastructural pathway to exceptional quality in Nigeria through our
-                innovative and quality services deliveries.
+                Your trusted source for everyday needs. We make grocery shopping effortless with
+                secure payments, timely deliveries, and a commitment to serving you better, every
+                time.
               </p>
               <div>
                 <div className="flex gap-4 items-center">
