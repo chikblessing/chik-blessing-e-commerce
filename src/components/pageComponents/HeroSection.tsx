@@ -41,7 +41,7 @@ export default function HeroSection() {
             traditional shopping and say hello to the ultimate convenience, with everything you need
             just a few clicks away.{' '}
           </p>
-          <button className="bg-[#07470F] hover:bg-black font-semibold py-2 px-8 rounded-xl ">
+          <button className="bg-[#07470F] text-lg hover:bg-black font-semibold py-2 px-8 rounded-xl ">
             Shop Now
           </button>
         </div>
