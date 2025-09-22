@@ -209,7 +209,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
                 <span>Help</span>
               </div>
             </Link>
-            <Link href="/shop" className={getLinkClasses('/properties')}>
+            <Link href="/cart" className={getLinkClasses('/cart')}>
               <div className="flex items-center gap-2">
                 <span>
                   <svg
