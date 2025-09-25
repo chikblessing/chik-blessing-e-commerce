@@ -14,8 +14,8 @@ const CounterItem = ({ end, label, symbol, duration = 2000 }:CounterItemsProps) 
 
   return (
     <div>
-      <h3 className="text-4xl text-white text-center font-bold">{count}{symbol}</h3>
-      <p className="text-white text-center">{label}</p>
+      <h3 className="text-4xl text-center font-bold">{count}{symbol}</h3>
+      <p className="text-center">{label}</p>
     </div>
   );
 };
