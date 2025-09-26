@@ -1,3 +1,13 @@
+import React from 'react'
+
+
+
+export default async function Page() {
+
+
+  return (
+    <><div>product</div></>
+  )}
 // import React, { cache } from 'react'
 // import type { Metadata } from 'next'
 // import { draftMode } from 'next/headers'
