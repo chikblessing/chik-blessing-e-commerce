@@ -77,6 +77,12 @@ export default function ProductsClient() {
     <>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1"></div>
+          <div className="lg:col-span-2">
+            <h3 className="text-3xl font-bold my-6">Featured Products</h3>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/*filter components */}
           <div className="lg:col-span-1">
             <div className="bg-white border border-[#084710] rounded-xl p-6 sticky top-4">

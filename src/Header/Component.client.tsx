@@ -57,11 +57,11 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
     const baseClasses = `hover:text-[#07470F] transition-colors duration-300 text-lg font-medium`
     const activeClasses = isActive
       ? isScrolled
-        ? 'text-[#E7C873] font-bold'
+        ? 'text-[#34CC34] font-bold'
         : 'text-black font-bold'
       : ''
     const scrollClasses = isScrolled
-      ? 'text-black hover:text-[#E7C873] font-semibold'
+      ? 'text-black hover:text-[#34CC34] font-semibold'
       : 'text-black'
     return `${baseClasses} ${isActive ? activeClasses : scrollClasses}`
   }
@@ -75,7 +75,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
         : 'text-black font-bold'
       : ''
     const scrollClasses = isScrolled
-      ? 'text-black hover:text-[#E7C873] font-bold'
+      ? 'text-black hover:text-[#34CC34] font-bold'
       : 'text-black font-bold'
     return `${baseClasses} ${isActive ? activeClasses : scrollClasses}`
   }
@@ -180,9 +180,9 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
               <Input
                 type="text"
                 placeholder="Search"
-                className="peer block w-[500px] rounded-xl border py-[9px] pl-10 text-sm"
+                className="peer block w-[500px] rounded-xl border py-[9px] pl-10 text-lg"
               />
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-[24px] w-[24px] -translate-y-1/2" />
             </div>
           </div>
           <div className="hidden md:flex space-x-8">

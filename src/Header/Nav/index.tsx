@@ -7,11 +7,11 @@ import type { Header as HeaderType } from '@/payload-types'
 import { CMSLink } from '@/components/Link'
 import Link from 'next/link'
 import { SearchIcon } from 'lucide-react'
-import { useCart } from '@/providers/Cart'
+// import { useCart } from '@/providers/Cart'
 
 export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
   const navItems = data?.navItems || []
-  const { count } = useCart()
+  // const { count } = useCart()
 
   return (
     <nav className="flex gap-3 items-center">
@@ -25,11 +25,11 @@ export const HeaderNav: React.FC<{ data: HeaderType }> = ({ data }) => {
       <Link href="/cart" className="relative inline-flex items-center">
         <span className="sr-only">Cart</span>
         <span className="i-lucide-shopping-cart w-5 h-5 text-primary" />
-        {count > 0 && (
+        {/* {count > 0 && (
           <span className="absolute -top-2 -right-2 text-[10px] bg-primary text-primary-foreground rounded-full w-5 h-5 inline-flex items-center justify-center">
             {count}
           </span>
-        )}
+        )} */}
       </Link>
     </nav>
   )

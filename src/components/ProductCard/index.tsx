@@ -37,7 +37,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
         </div>
       </Link>
       <div className="p-4 pt-0 flex gap-2">
-        <button
+        {/* <button
           onClick={() =>
             addItem(
               {
@@ -52,7 +52,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
           className="w-full inline-flex items-center justify-center rounded-md border bg-primary text-primary-foreground px-3 py-2 text-sm hover:opacity-90 disabled:opacity-50"
         >
           Add to cart
-        </button>
+        </button> */}
         <button className="rounded-md border px-3 py-2 text-sm">❤</button>
       </div>
     </div>
