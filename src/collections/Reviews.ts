@@ -6,7 +6,6 @@ import { authenticated } from '../access/authenticated'
 
 type UserAccessArgs = AccessArgs<CustomUser>
 
-
 export const Reviews: CollectionConfig = {
   slug: 'reviews',
   access: {
@@ -17,10 +16,11 @@ export const Reviews: CollectionConfig = {
     update: ({ req: { user } }: UserAccessArgs) => {
       const customUser = user as CustomUser | undefined
 
-      if (customUser?.role === 'admin') return true
+      if (!customUser) return false
+      if (customUser.role === 'admin') return true
       return {
-        id: {
-          equals: customUser?.id,
+        customer: {
+          equals: customUser.id,
         },
       }
     },
@@ -75,7 +75,7 @@ export const Reviews: CollectionConfig = {
       defaultValue: 'pending',
       required: true,
       access: {
-        update: authenticated,
+        update: ({ req }) => !!req.user && (req.user as CustomUser).role === 'admin',
       },
     },
     {
