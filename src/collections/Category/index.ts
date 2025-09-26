@@ -14,13 +14,13 @@ export const Categories: CollectionConfig = {
     delete: authenticated,
   },
   admin: {
-    useAsTitle: 'name',
-    defaultColumns: ['name', 'parent', 'productsCount'],
+    useAsTitle: 'title',
+    defaultColumns: ['title', 'parent', 'productsCount'],
     group: 'E-commerce',
   },
   fields: [
     {
-      name: 'name',
+      name: 'title',
       type: 'text',
       required: true,
     },
@@ -82,8 +82,8 @@ export const Categories: CollectionConfig = {
     beforeChange: [
       ({ data }) => {
         // Automation for slug generation
-        if (!data.slug && data.name) {
-          data.slug = data.name
+        if (!data.slug && data.title) {
+          data.slug = data.title
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '')

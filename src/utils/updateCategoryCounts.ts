@@ -36,7 +36,7 @@ export const updateAllCategoryCounts = async (payload: Payload) => {
         },
       })
 
-      console.log(`Updated category "${category.name}" with ${products.totalDocs} products`)
+      console.log(`Updated category "${category.title}" with ${products.totalDocs} products`)
     }
 
     console.log('✅ All category product counts updated successfully!')

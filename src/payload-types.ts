@@ -362,7 +362,7 @@ export interface Media {
  */
 export interface Category {
   id: string;
-  name: string;
+  title: string;
   /**
    * URL-friendly version of the name
    */
@@ -1626,7 +1626,7 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
-  name?: T;
+  title?: T;
   slug?: T;
   description?: T;
   parent?: T;
