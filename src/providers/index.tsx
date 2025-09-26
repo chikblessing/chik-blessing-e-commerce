@@ -2,15 +2,23 @@ import React from 'react'
 
 import { HeaderThemeProvider } from './HeaderTheme'
 import { ThemeProvider } from './Theme'
-// import { CartProvider } from './Cart'
+import { AuthProvider } from './Auth'
+import { CartProvider } from './Cart'
+import { WishlistProvider } from './Wishlist'
 
 export const Providers: React.FC<{
   children: React.ReactNode
 }> = ({ children }) => {
   return (
     <ThemeProvider>
-      {/* <CartProvider></CartProvider> */}
-      <HeaderThemeProvider>{children}</HeaderThemeProvider>
+      <HeaderThemeProvider>
+        <AuthProvider>
+          {' '}
+          <CartProvider>
+            <WishlistProvider>{children}</WishlistProvider>{' '}
+          </CartProvider>{' '}
+        </AuthProvider>
+      </HeaderThemeProvider>
     </ThemeProvider>
   )
 }

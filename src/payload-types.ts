@@ -72,6 +72,7 @@ export interface Config {
     media: Media;
     categories: Category;
     products: Product;
+    promotions: Promotion;
     orders: Order;
     reviews: Review;
     'shipping-zones': ShippingZone;
@@ -92,6 +93,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
+    promotions: PromotionsSelect<false> | PromotionsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     'shipping-zones': ShippingZonesSelect<false> | ShippingZonesSelect<true>;
@@ -360,10 +362,29 @@ export interface Media {
  */
 export interface Category {
   id: string;
-  title: string;
-  slug?: string | null;
-  slugLock?: boolean | null;
+  name: string;
+  /**
+   * URL-friendly version of the name
+   */
+  slug: string;
+  description?: string | null;
+  /**
+   * Leave empty for top-level category
+   */
   parent?: (string | null) | Category;
+  image?: (string | null) | Media;
+  /**
+   * Inactive categories won't appear in filters
+   */
+  isActive?: boolean | null;
+  /**
+   * Categories with lower numbers appear first
+   */
+  sortOrder?: number | null;
+  /**
+   * Number of products in this category (automatically updated)
+   */
+  productsCount?: number | null;
   breadcrumbs?:
     | {
         doc?: (string | null) | Category;
@@ -381,7 +402,46 @@ export interface Category {
  */
 export interface User {
   id: string;
-  name?: string | null;
+  name: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  /**
+   * User profile picture or avatar.
+   */
+  avatar?: (string | null) | Media;
+  role: 'admin' | 'customer';
+  phone?: string | null;
+  gender?: ('male' | 'female' | 'nonbinary' | 'undisclosed') | null;
+  dateOfBirth?: string | null;
+  addresses?:
+    | {
+        type: 'billing' | 'shipping';
+        street: string;
+        city: string;
+        state: string;
+        country: string;
+        postalCode: string;
+        isDefault?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  cart?:
+    | {
+        product: string | Product;
+        quantity: number;
+        addedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Order history is automatically managed by the system
+   */
+  orderHistory?:
+    | {
+        order: string | Order;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -389,6 +449,8 @@ export interface User {
   resetPasswordExpiration?: string | null;
   salt?: string | null;
   hash?: string | null;
+  _verified?: boolean | null;
+  _verificationToken?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
   sessions?:
@@ -399,6 +461,251 @@ export interface User {
       }[]
     | null;
   password?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: string;
+  title: string;
+  slug: string;
+  /**
+   * Brief description for product cards and listings
+   */
+  shortDescription?: string | null;
+  /**
+   * Full product description with formatting
+   */
+  description: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Key product features/highlights
+   */
+  features?:
+    | {
+        feature: string;
+        id?: string | null;
+      }[]
+    | null;
+  price: number;
+  /**
+   * If set, this will override the regular price
+   */
+  salePrice?: number | null;
+  images: {
+    image: string | Media;
+    alt: string;
+    /**
+     * Use as main product image
+     */
+    isFeature?: boolean | null;
+    id?: string | null;
+  }[];
+  /**
+   * Additional product images for gallery
+   */
+  gallery?:
+    | {
+        image: string | Media;
+        caption?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  categories: (string | Category)[];
+  brand: string;
+  status: 'draft' | 'published' | 'out-of-stock';
+  inventory: {
+    stock: number;
+    lowStockThreshold?: number | null;
+    sku: string;
+    trackInventory?: boolean | null;
+    /**
+     * Weight in kg for shipping calculations
+     */
+    weight?: number | null;
+    dimensions?: {
+      length?: number | null;
+      width?: number | null;
+      height?: number | null;
+    };
+  };
+  specifications?:
+    | {
+        name: string;
+        value: string;
+        /**
+         * Group specifications together (e.g., "Dimensions", "Technical")
+         */
+        group?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Calculated from reviews
+   */
+  rating?: {
+    average?: number | null;
+    count?: number | null;
+    breakdown?: {
+      fiveStars?: number | null;
+      fourStars?: number | null;
+      threeStars?: number | null;
+      twoStars?: number | null;
+      oneStar?: number | null;
+    };
+  };
+  /**
+   * Active promotions that apply to this product
+   */
+  promotions?: (string | Promotion)[] | null;
+  /**
+   * Products to suggest on the product page
+   */
+  relatedProducts?: (string | Product)[] | null;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  seo?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    keywords?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promotions".
+ */
+export interface Promotion {
+  id: string;
+  /**
+   * Internal name for the promotion (e.g., Summer Sale 2025)
+   */
+  name: string;
+  /**
+   * The coupon code customers must enter (e.g., SAVE20). Leave empty for automatic/site-wide sales.
+   */
+  code?: string | null;
+  /**
+   * Controls if the promotion is currently active and available for use.
+   */
+  isActive?: boolean | null;
+  type: 'percentage' | 'fixed' | 'shipping';
+  /**
+   * The discount value (e.g., 20 for 20% off or 10 for $10 off).
+   */
+  value?: number | null;
+  dates: {
+    startDate: string;
+    /**
+     * Promotion will automatically expire after this date.
+     */
+    endDate?: string | null;
+  };
+  usageLimit?: {
+    /**
+     * Maximum number of times this promotion can be used across all customers.
+     */
+    totalUses?: number | null;
+    /**
+     * Automatically tracked count of how many times the promotion has been used.
+     */
+    usesCount?: number | null;
+    /**
+     * Maximum number of times a single customer can use this promotion.
+     */
+    perCustomer?: number | null;
+  };
+  /**
+   * Minimum required purchase amount before the discount can be applied.
+   */
+  minimumOrder?: number | null;
+  appliesTo?: ('all' | 'products') | null;
+  /**
+   * Only products selected here will be discounted.
+   */
+  eligibleProducts?: (string | Product)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: string;
+  orderNumber: string;
+  customer: string | User;
+  items: {
+    product: string | Product;
+    productTitle?: string | null;
+    productImage?: (string | null) | Media;
+    quantity: number;
+    price: number;
+    sku?: string | null;
+    id?: string | null;
+  }[];
+  subtotal: number;
+  shipping?: number | null;
+  tax?: number | null;
+  total: number;
+  delivery?: {
+    /**
+     * Carrier tracking number
+     */
+    trackingNumber?: string | null;
+    /**
+     * Shipping carrier (e.g., FedEx, USPS)
+     */
+    carrier?: string | null;
+    /**
+     * Estimated date the customer should receive the order.
+     */
+    expectedDeliveryDate?: string | null;
+    /**
+     * The confirmed date the order was delivered.
+     */
+    actualDeliveryDate?: string | null;
+  };
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  shippingAddress: {
+    name: string;
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  };
+  billingAddress: {
+    name: string;
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  };
+  paymentStatus: 'pending' | 'paid' | 'refunded';
+  transactionId?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -744,98 +1051,21 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "products".
- */
-export interface Product {
-  id: string;
-  title: string;
-  sku?: string | null;
-  description?: string | null;
-  images?: (string | Media)[] | null;
-  categories?: (string | Category)[] | null;
-  price: number;
-  salePrice?: number | null;
-  inventory?: number | null;
-  status?: ('in-stock' | 'out-of-stock' | 'preorder') | null;
-  variants?:
-    | {
-        name: string;
-        sku?: string | null;
-        /**
-         * Delta added to base price (can be negative)
-         */
-        priceDelta?: number | null;
-        inventory?: number | null;
-        id?: string | null;
-      }[]
-    | null;
-  slug?: string | null;
-  slugLock?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "orders".
- */
-export interface Order {
-  id: string;
-  reference?: string | null;
-  items: {
-    product: string | Product;
-    variantName?: string | null;
-    unitPrice: number;
-    quantity: number;
-    subtotal: number;
-    id?: string | null;
-  }[];
-  subtotal?: number | null;
-  shipping?: number | null;
-  tax?: number | null;
-  total?: number | null;
-  shippingAddress: {
-    fullName: string;
-    phone: string;
-    addressLine1: string;
-    addressLine2?: string | null;
-    city: string;
-    state: string;
-    country: string;
-    postalCode?: string | null;
-  };
-  customerEmail: string;
-  user?: (string | null) | User;
-  status?:
-    | ('pending' | 'awaiting-payment' | 'paid' | 'processing' | 'shipped' | 'completed' | 'cancelled' | 'refunded')
-    | null;
-  paystack?: {
-    reference?: string | null;
-    authorizationUrl?: string | null;
-    accessCode?: string | null;
-    paidAt?: string | null;
-    channel?: string | null;
-  };
-  tracking?: {
-    trackingNumber?: string | null;
-    carrier?: string | null;
-    estimatedDelivery?: string | null;
-  };
-  notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "reviews".
  */
 export interface Review {
   id: string;
   product: string | Product;
-  user?: (string | null) | User;
-  title?: string | null;
-  body?: string | null;
+  customer: string | User;
+  title: string;
+  comment: string;
   rating: number;
-  approved?: boolean | null;
+  status: 'pending' | 'approved' | 'rejected';
+  /**
+   * Automatically set if customer purchased this product
+   */
+  isVerifiedPurchase?: boolean | null;
+  helpfulVotes?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1049,6 +1279,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'products';
         value: string | Product;
+      } | null)
+    | ({
+        relationTo: 'promotions';
+        value: string | Promotion;
       } | null)
     | ({
         relationTo: 'orders';
@@ -1392,10 +1626,14 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
-  title?: T;
+  name?: T;
   slug?: T;
-  slugLock?: T;
+  description?: T;
   parent?: T;
+  image?: T;
+  isActive?: T;
+  sortOrder?: T;
+  productsCount?: T;
   breadcrumbs?:
     | T
     | {
@@ -1413,25 +1651,118 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
-  sku?: T;
+  slug?: T;
+  shortDescription?: T;
   description?: T;
-  images?: T;
-  categories?: T;
+  features?:
+    | T
+    | {
+        feature?: T;
+        id?: T;
+      };
   price?: T;
   salePrice?: T;
-  inventory?: T;
+  images?:
+    | T
+    | {
+        image?: T;
+        alt?: T;
+        isFeature?: T;
+        id?: T;
+      };
+  gallery?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        id?: T;
+      };
+  categories?: T;
+  brand?: T;
   status?: T;
-  variants?:
+  inventory?:
+    | T
+    | {
+        stock?: T;
+        lowStockThreshold?: T;
+        sku?: T;
+        trackInventory?: T;
+        weight?: T;
+        dimensions?:
+          | T
+          | {
+              length?: T;
+              width?: T;
+              height?: T;
+            };
+      };
+  specifications?:
     | T
     | {
         name?: T;
-        sku?: T;
-        priceDelta?: T;
-        inventory?: T;
+        value?: T;
+        group?: T;
         id?: T;
       };
-  slug?: T;
-  slugLock?: T;
+  rating?:
+    | T
+    | {
+        average?: T;
+        count?: T;
+        breakdown?:
+          | T
+          | {
+              fiveStars?: T;
+              fourStars?: T;
+              threeStars?: T;
+              twoStars?: T;
+              oneStar?: T;
+            };
+      };
+  promotions?: T;
+  relatedProducts?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        keywords?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promotions_select".
+ */
+export interface PromotionsSelect<T extends boolean = true> {
+  name?: T;
+  code?: T;
+  isActive?: T;
+  type?: T;
+  value?: T;
+  dates?:
+    | T
+    | {
+        startDate?: T;
+        endDate?: T;
+      };
+  usageLimit?:
+    | T
+    | {
+        totalUses?: T;
+        usesCount?: T;
+        perCustomer?: T;
+      };
+  minimumOrder?: T;
+  appliesTo?: T;
+  eligibleProducts?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1440,53 +1771,54 @@ export interface ProductsSelect<T extends boolean = true> {
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
-  reference?: T;
+  orderNumber?: T;
+  customer?: T;
   items?:
     | T
     | {
         product?: T;
-        variantName?: T;
-        unitPrice?: T;
+        productTitle?: T;
+        productImage?: T;
         quantity?: T;
-        subtotal?: T;
+        price?: T;
+        sku?: T;
         id?: T;
       };
   subtotal?: T;
   shipping?: T;
   tax?: T;
   total?: T;
-  shippingAddress?:
-    | T
-    | {
-        fullName?: T;
-        phone?: T;
-        addressLine1?: T;
-        addressLine2?: T;
-        city?: T;
-        state?: T;
-        country?: T;
-        postalCode?: T;
-      };
-  customerEmail?: T;
-  user?: T;
-  status?: T;
-  paystack?:
-    | T
-    | {
-        reference?: T;
-        authorizationUrl?: T;
-        accessCode?: T;
-        paidAt?: T;
-        channel?: T;
-      };
-  tracking?:
+  delivery?:
     | T
     | {
         trackingNumber?: T;
         carrier?: T;
-        estimatedDelivery?: T;
+        expectedDeliveryDate?: T;
+        actualDeliveryDate?: T;
       };
-  notes?: T;
+  status?: T;
+  shippingAddress?:
+    | T
+    | {
+        name?: T;
+        street?: T;
+        city?: T;
+        state?: T;
+        postalCode?: T;
+        country?: T;
+      };
+  billingAddress?:
+    | T
+    | {
+        name?: T;
+        street?: T;
+        city?: T;
+        state?: T;
+        postalCode?: T;
+        country?: T;
+      };
+  paymentStatus?: T;
+  transactionId?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1496,11 +1828,13 @@ export interface OrdersSelect<T extends boolean = true> {
  */
 export interface ReviewsSelect<T extends boolean = true> {
   product?: T;
-  user?: T;
+  customer?: T;
   title?: T;
-  body?: T;
+  comment?: T;
   rating?: T;
-  approved?: T;
+  status?: T;
+  isVerifiedPurchase?: T;
+  helpfulVotes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1527,6 +1861,39 @@ export interface ShippingZonesSelect<T extends boolean = true> {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  firstName?: T;
+  lastName?: T;
+  avatar?: T;
+  role?: T;
+  phone?: T;
+  gender?: T;
+  dateOfBirth?: T;
+  addresses?:
+    | T
+    | {
+        type?: T;
+        street?: T;
+        city?: T;
+        state?: T;
+        country?: T;
+        postalCode?: T;
+        isDefault?: T;
+        id?: T;
+      };
+  cart?:
+    | T
+    | {
+        product?: T;
+        quantity?: T;
+        addedAt?: T;
+        id?: T;
+      };
+  orderHistory?:
+    | T
+    | {
+        order?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1534,6 +1901,8 @@ export interface UsersSelect<T extends boolean = true> {
   resetPasswordExpiration?: T;
   salt?: T;
   hash?: T;
+  _verified?: T;
+  _verificationToken?: T;
   loginAttempts?: T;
   lockUntil?: T;
   sessions?:

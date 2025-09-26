@@ -2,18 +2,18 @@
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 
-
 import sharp from 'sharp' // sharp-import
 import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 
-import { Categories } from './collections/Categories'
+import { Categories } from './collections/Category'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { Users } from './collections/Users'
 import { Products } from './collections/Products'
+import { Promotions } from './collections/Promotions'
 import { Orders } from './collections/Orders'
 import { Reviews } from './collections/Reviews'
 import { ShippingZones } from './collections/ShippingZones'
@@ -68,7 +68,18 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.DATABASE_URI || '',
   }),
-  collections: [Pages, Posts, Media, Categories, Products, Orders, Reviews, ShippingZones, Users],
+  collections: [
+    Pages,
+    Posts,
+    Media,
+    Categories,
+    Products,
+    Promotions,
+    Orders,
+    Reviews,
+    ShippingZones,
+    Users,
+  ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [

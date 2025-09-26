@@ -16,7 +16,7 @@ export default function AboutPage() {
         }}
       >
         {/* Overlay for readability */}
-        <div className="absolute inset-0 text-center bg-black opacity-10 z-10" />
+        <div className="absolute inset-0 text-center bg-black opacity-10 z-10 py" />
         <div className="max-w-3xl mx-auto">
           <h1 className="relative z-20 text-white text-5xl font-bold mt-20">
             Our Story of Fresh & Organic
