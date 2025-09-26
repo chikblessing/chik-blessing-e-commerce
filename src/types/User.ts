@@ -1,6 +1,4 @@
-
 import type { TypedUser } from 'payload'
-
 
 export interface Address {
   type: 'billing' | 'shipping'
@@ -12,14 +10,11 @@ export interface Address {
   isDefault: boolean
 }
 
-
 export interface CartItem {
-
   product: string // The ID of the related 'products' document
   quantity: number
   addedAt: string
 }
-
 
 export interface CustomUser extends TypedUser {
   // Standard Payload fields
@@ -41,7 +36,7 @@ export interface CustomUser extends TypedUser {
   addresses?: Address[]
   cart?: CartItem[]
 
-  // 🟢 FIX: Use a simple array of IDs for 'hasMany' relationships
+  // 🟢 FIX: Use proper relationship structure matching Payload collection definitions
   wishlist?: string[] // Array of product IDs (assuming IDs are strings)
-  orderHistory?: string[] // Array of order IDs
+  orderHistory?: { order: string; id?: string | null }[] // Array of order relationship objects
 }
