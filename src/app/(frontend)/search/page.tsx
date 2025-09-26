@@ -1,6 +1,6 @@
 import React from 'react'
 
-const DummyComponent: React.FC = () => {
+const Page: React.FC = () => {
   return (
     <div className="bg-gray-100 p-4 rounded-md shadow-sm">
       <h2 className="text-xl font-bold mb-2">Dummy Component</h2>
@@ -9,7 +9,7 @@ const DummyComponent: React.FC = () => {
   )
 }
 
-export default DummyComponent
+export default Page
 // import type { Metadata } from 'next/types'
 
 // import { CollectionArchive } from '@/components/CollectionArchive'

@@ -1,4 +1,4 @@
-const DummyComponent: React.FC = () => {
+export const Card: React.FC = () => {
   return (
     <div className="p-4 bg-gray-100 rounded-md">
       <h2 className="text-xl font-bold mb-2">Dummy Component</h2>
@@ -10,7 +10,6 @@ const DummyComponent: React.FC = () => {
   )
 }
 
-export default DummyComponent
 // 'use client'
 // import { cn } from '@/utilities/ui'
 // import useClickableCard from '@/utilities/useClickableCard'
