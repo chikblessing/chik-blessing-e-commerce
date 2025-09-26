@@ -102,6 +102,7 @@ export const seed = async ({
         name: 'Demo Author',
         email: 'demo-author@example.com',
         password: 'password',
+        role: 'admin',
       },
     }),
     payload.create({
@@ -128,77 +129,47 @@ export const seed = async ({
     payload.create({
       collection: 'categories',
       data: {
-        title: 'Technology',
-        breadcrumbs: [
-          {
-            label: 'Technology',
-            url: '/technology',
-          },
-        ],
+        name: 'Technology',
+        slug: 'technology',
       },
     }),
 
     payload.create({
       collection: 'categories',
       data: {
-        title: 'News',
-        breadcrumbs: [
-          {
-            label: 'News',
-            url: '/news',
-          },
-        ],
+        name: 'News',
+        slug: 'news',
       },
     }),
 
     payload.create({
       collection: 'categories',
       data: {
-        title: 'Finance',
-        breadcrumbs: [
-          {
-            label: 'Finance',
-            url: '/finance',
-          },
-        ],
+        name: 'Finance',
+        slug: 'finance',
       },
     }),
     payload.create({
       collection: 'categories',
       data: {
-        title: 'Design',
-        breadcrumbs: [
-          {
-            label: 'Design',
-            url: '/design',
-          },
-        ],
+        name: 'Design',
+        slug: 'design',
       },
     }),
 
     payload.create({
       collection: 'categories',
       data: {
-        title: 'Software',
-        breadcrumbs: [
-          {
-            label: 'Software',
-            url: '/software',
-          },
-        ],
+        name: 'Software',
+        slug: 'software',
       },
     }),
 
     payload.create({
       collection: 'categories',
       data: {
-        title: 'Engineering',
-        breadcrumbs: [
-          {
-            label: 'Engineering',
-            url: '/engineering',
-          },
-        ],
+        name: 'Engineering',
+        slug: 'engineering',
       },
     }),
   ])
