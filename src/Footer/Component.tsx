@@ -13,7 +13,7 @@ export async function Footer() {
   const navItems = footerData?.navItems || []
 
   return (
-    <footer className="relative">
+    <footer className="relative mt-[100px]">
       {/* Subscribe box */}
       <div className="absolute left-1/2 transform -translate-x-1/2 -top-16 w-full max-w-4xl mx-auto px-4">
         <div className="bg-[#084710] rounded-xl px-8 py-6 text-center shadow-lg">

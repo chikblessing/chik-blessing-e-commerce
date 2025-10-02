@@ -1,13 +1,11 @@
-import React from 'react'
+import { Metadata } from 'next'
 import CartClient from './page.client'
 
-export const revalidate = 0
-
-export default async function Page() {
-  return (
-    <div className="py-40 bg-[#F0F0F0]">
-      <CartClient />
-    </div>
-  )
+export const metadata: Metadata = {
+  title: 'Shopping Cart',
+  description: 'Review and manage items in your shopping cart',
 }
 
+export default function CartPage() {
+  return <CartClient />
+}

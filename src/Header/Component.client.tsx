@@ -1,6 +1,8 @@
 'use client'
 
 import { useHeaderTheme } from '@/providers/HeaderTheme'
+import { useCart } from '@/providers/Cart'
+import { useWishlist } from '@/providers/Wishlist'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
@@ -8,10 +10,20 @@ import type { Header } from '@/payload-types'
 import { Logo } from '@/components/Logo/Logo'
 import { HeaderNav } from './Nav'
 import Image from 'next/image'
-import { AlignJustify, Search, ShoppingCart } from 'lucide-react'
+import { AlignJustify, Search, ShoppingCart, Heart } from 'lucide-react'
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { Input } from '@/components/ui/input'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+
+import { useAuth } from  '@/providers/Auth'
 
 interface HeaderClientProps {
   data: Header
@@ -23,7 +35,10 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [theme, setTheme] = useState<string | null>(null)
   const { headerTheme, setHeaderTheme } = useHeaderTheme()
+  const { totalItems: cartItems } = useCart()
+  const { totalItems: wishlistItems } = useWishlist()
   const pathname = usePathname()
+  const { user } = useAuth();
   const isMobile = useMediaQuery('(max-width: 640px)')
   const isTablet = useMediaQuery('(min-width: 641px) and (max-width: 1024px)')
   const isDesktop = useMediaQuery('(min-width: 1025px)')
@@ -87,39 +102,38 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
   const MobileDrawerContent = () => (
     <DrawerContent>
       <div className="mx-auto my-8">
-        <Image
-          src="/assets/cbgs-logo.png"
-          alt="Cbgs-logo"
-          width={80}
-          height={45}
-          priority
-        />
+        <Image src="/assets/cbgs-logo.png" alt="Cbgs-logo" width={80} height={45} priority />
       </div>
       <div className="flex flex-col h-full space-y-8 mx-auto my-8">
         <Link
-          href="/properties"
-          className={getLinkMobile('/properties')}
+          href="/wishlist"
+          className={getLinkMobile('/wishlist')}
           onClick={handleMobileLinkClick}
         >
-          <ShoppingCart />
+          <div className="flex items-center gap-3 relative">
+            <span className="relative">
+              <Heart className="w-6 h-6" />
+              {wishlistItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                  {wishlistItems > 99 ? '99+' : wishlistItems}
+                </span>
+              )}
+            </span>
+            <span>Wishlist</span>
+          </div>
         </Link>
-        <Link href="/about" className={getLinkMobile('/about')} onClick={handleMobileLinkClick}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="lucide lucide-shopping-cart-icon lucide-shopping-cart"
-          >
-            <circle cx="8" cy="21" r="1" />
-            <circle cx="19" cy="21" r="1" />
-            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-          </svg>
+        <Link href="/cart" className={getLinkMobile('/cart')} onClick={handleMobileLinkClick}>
+          <div className="flex items-center gap-3 relative">
+            <span className="relative">
+              <ShoppingCart className="w-6 h-6" />
+              {cartItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#084710] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                  {cartItems > 99 ? '99+' : cartItems}
+                </span>
+              )}
+            </span>
+            <span>Cart</span>
+          </div>
         </Link>
         <Link href="/blog" className={getLinkMobile('/blog')} onClick={handleMobileLinkClick}>
           Blog
@@ -185,7 +199,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
               <Search className="pointer-events-none absolute left-3 top-1/2 h-[24px] w-[24px] -translate-y-1/2" />
             </div>
           </div>
-          <div className="hidden md:flex space-x-8">
+          <div className="hidden md:flex items-center space-x-8">
             <Link href="/about" className={getLinkClasses('/about')}>
               <div className="flex items-center gap-2">
                 <span>
@@ -206,28 +220,56 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
                     <path d="M12 17h.01" />
                   </svg>
                 </span>
-                <span>Help</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <div className="flex items-center gap-1">
+                      Help{' '}
+                      <span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          height="24"
+                          fill="currentColor"
+                        >
+                          <path d="M11.9999 13.1714L16.9497 8.22168L18.3639 9.63589L11.9999 15.9999L5.63599 9.63589L7.0502 8.22168L11.9999 13.1714Z"></path>
+                        </svg>
+                      </span>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>Support</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>Contact Us</DropdownMenuItem>
+                    <DropdownMenuItem>Billing</DropdownMenuItem>
+                    <DropdownMenuItem>Team</DropdownMenuItem>
+                    <DropdownMenuItem>Subscription</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </Link>
+            <Link href="/wishlist" className={getLinkClasses('/wishlist')}>
+              <div className="flex items-center gap-2 relative">
+                <span className="relative">
+                  <Heart className="w-6 h-6" />
+                  {wishlistItems > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                      {wishlistItems > 99 ? '99+' : wishlistItems}
+                    </span>
+                  )}
+                </span>
+                <span>Wishlist</span>
               </div>
             </Link>
             <Link href="/cart" className={getLinkClasses('/cart')}>
-              <div className="flex items-center gap-2">
-                <span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-shopping-cart-icon lucide-shopping-cart"
-                  >
-                    <circle cx="8" cy="21" r="1" />
-                    <circle cx="19" cy="21" r="1" />
-                    <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-                  </svg>
+              <div className="flex items-center gap-2 relative">
+                <span className="relative">
+                  <ShoppingCart className="w-6 h-6" />
+                  {cartItems > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-[#084710] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                      {cartItems > 99 ? '99+' : cartItems}
+                    </span>
+                  )}
                 </span>
                 <span>Cart</span>
               </div>
@@ -254,8 +296,8 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
               </div>
             </Link> */}
 
-            <Link href="/blog" className={getLinkClasses('/blog')}>
-              <div className="flex gap-2 items-center">
+            {user ? (
+             <div className="flex gap-2 items-center">
                 <span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -274,9 +316,39 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
                     <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
                   </svg>
                 </span>
-                <span>Account</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <div className="flex items-center gap-1">
+                      Account{' '}
+                      <span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          height="24"
+                          fill="currentColor"
+                        >
+                          <path d="M11.9999 13.1714L16.9497 8.22168L18.3639 9.63589L11.9999 15.9999L5.63599 9.63589L7.0502 8.22168L11.9999 13.1714Z"></path>
+                        </svg>
+                      </span>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>Profile</DropdownMenuItem>
+                    <DropdownMenuItem>Orders</DropdownMenuItem>
+                    <DropdownMenuItem>Team</DropdownMenuItem>
+                    <DropdownMenuItem>Subscription</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            </Link>
+
+              
+            ):(
+              <button className="bg-[#084710] hover:bg-black text-white text-md py-3 px-6 rounded-xl">Sign In/ Sign Up</button>
+              )}
+             
           </div>
         </div>
       )}

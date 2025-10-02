@@ -1,19 +1,26 @@
-// providers/Wishlist/index.tsx
 'use client'
-import { createContext, useContext, useEffect, useState } from 'react'
+
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../Auth'
-import { apiClient } from '../Auth/apiClient' // 🟢 Assuming apiClient is available
+import { Product } from '@/payload-types'
+import { apiClient } from '../Auth/apiClient'
 
 // ----------------------------------------------------------------------
-// TYPES & CONTEXT
+// TYPES
 // ----------------------------------------------------------------------
+
+type WishlistItem = {
+  product: Product
+  addedAt: Date
+}
 
 type WishlistContextType = {
-  items: string[] // Array of Product IDs
-  addItem: (productId: string) => Promise<void>
+  items: WishlistItem[]
+  addItem: (product: Product) => Promise<void>
   removeItem: (productId: string) => Promise<void>
   isInWishlist: (productId: string) => boolean
-  toggleItem: (productId: string) => Promise<void>
+  clearWishlist: () => Promise<void>
+  totalItems: number
 }
 
 const WishlistContext = createContext<WishlistContextType>({
@@ -21,7 +28,8 @@ const WishlistContext = createContext<WishlistContextType>({
   addItem: async () => {},
   removeItem: async () => {},
   isInWishlist: () => false,
-  toggleItem: async () => {},
+  clearWishlist: async () => {},
+  totalItems: 0,
 })
 
 export const useWishlist = () => useContext(WishlistContext)
@@ -32,88 +40,120 @@ export const useWishlist = () => useContext(WishlistContext)
 
 export const WishlistProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, token } = useAuth()
-  const [items, setItems] = useState<string[]>([])
-  const userAny = user as any // Type assertion for user properties
-  // --- 1. INITIAL LOAD & SYNCHRONIZATION ---
+  const [items, setItems] = useState<WishlistItem[]>([])
+  const userAny = user as any
+  const isInitialLoad = useRef(true)
 
+  // Sync with server
+  const syncWithServer = async (newItems: WishlistItem[]) => {
+    if (!user || !token) return
+
+    try {
+      await apiClient('users/wishlist', {
+        method: 'POST',
+        token: token,
+        body: {
+          wishlist: newItems.map((item) => ({
+            product: item.product.id,
+            addedAt: item.addedAt,
+          })),
+        },
+      })
+    } catch (error) {
+      console.error('Failed to sync wishlist:', error)
+    }
+  }
+
+  // Merge guest wishlist with server wishlist
+  const mergeWishlist = async (guestWishlist: WishlistItem[]) => {
+    if (!user || !token) return
+
+    await syncWithServer(guestWishlist)
+    localStorage.removeItem('wishlist')
+  }
+
+  // Initial load
   useEffect(() => {
-    // If user is logged in, load from server's wishlist field
     if (user && userAny.wishlist) {
-      const wishlistIds = userAny.wishlist.map(
-        (
-          item: any, // Handles both populated object (item.id) and string ID (item)
-        ) => (typeof item === 'string' ? item : item.id),
-      )
-      setItems(wishlistIds)
-    } else {
-      // If user is a guest, load from local storage
+      // User is logged in, load wishlist from server
+      const wishlistItems = userAny.wishlist.map((item: any) => ({
+        product: typeof item.product === 'string' ? { id: item.product } : item.product,
+        addedAt: new Date(item.addedAt),
+      })) as WishlistItem[]
+      setItems(wishlistItems)
+
+      // Merge guest wishlist if exists
+      const savedWishlist = localStorage.getItem('wishlist')
+      if (isInitialLoad.current && savedWishlist) {
+        const guestWishlist = JSON.parse(savedWishlist)
+        mergeWishlist(guestWishlist)
+      }
+    } else if (!user) {
+      // User is guest, load from local storage
       const savedWishlist = localStorage.getItem('wishlist')
       if (savedWishlist) {
-        setItems(JSON.parse(savedWishlist))
+        const parsed = JSON.parse(savedWishlist)
+        const wishlistItems = parsed.map((item: any) => ({
+          ...item,
+          addedAt: new Date(item.addedAt),
+        }))
+        setItems(wishlistItems)
       }
     }
-  }, [user]) // --- 2. LOCAL STORAGE PERSISTENCE (Guests Only) ---
 
+    isInitialLoad.current = false
+  }, [user])
+
+  // Local storage persistence
   useEffect(() => {
     if (!user) {
       localStorage.setItem('wishlist', JSON.stringify(items))
     }
-  }, [items, user]) // --- 3. SERVER SYNCHRONIZATION HELPER ---
-
-  const syncWithServer = async (action: 'add' | 'remove', productId: string) => {
-    if (!user || !token) return
-
-    try {
-      // 🟢 API ABSTRACTION: Use apiClient for clean and secure fetch
-      await apiClient('users/wishlist', {
-        method: 'POST',
-        token: token,
-        body: { productId, action },
-      })
-    } catch (error) {
-      // 🟢 OPTION A IMPLEMENTATION: Log error but do NOT revert local state.
-      // This ensures a smooth UX, assuming the server will eventually be correct.
-      console.error('Wishlist sync failed (UX maintained):', error)
+    if (user) {
+      syncWithServer(items)
     }
-  } // --- 4. CART ACTIONS ---
+  }, [items, user])
 
-  const addItem = async (productId: string) => {
-    if (!items.includes(productId)) {
-      const newItems = [...items, productId]
-      setItems(newItems)
-      await syncWithServer('add', productId)
+  // Wishlist actions
+  const addItem = async (product: Product) => {
+    const existingIndex = items.findIndex((item) => item.product.id === product.id)
+
+    if (existingIndex >= 0) {
+      // Item already in wishlist, don't add again
+      return
     }
+
+    const newItem: WishlistItem = {
+      product,
+      addedAt: new Date(),
+    }
+
+    setItems([...items, newItem])
   }
 
   const removeItem = async (productId: string) => {
-    const newItems = items.filter((id) => id !== productId)
+    const newItems = items.filter((item) => item.product.id !== productId)
     setItems(newItems)
-    await syncWithServer('remove', productId)
   }
 
-  const isInWishlist = (productId: string) => items.includes(productId)
-
-  const toggleItem = async (productId: string) => {
-    if (isInWishlist(productId)) {
-      await removeItem(productId)
-    } else {
-      await addItem(productId)
-    }
+  const isInWishlist = (productId: string) => {
+    return items.some((item) => item.product.id === productId)
   }
 
-  return (
-    <WishlistContext.Provider
-      value={{
-        items,
-        addItem,
-        removeItem,
-        isInWishlist,
-        toggleItem,
-      }}
-    >
-      
-       {children}
-       {' '}
-    </WishlistContext.Provider>
-  )
+  const clearWishlist = async () => {
+    setItems([])
+  }
+
+  const totalItems = items.length
+
+  const value = {
+    items,
+    addItem,
+    removeItem,
+    isInWishlist,
+    clearWishlist,
+    totalItems,
+  }
+
+  return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>
 }

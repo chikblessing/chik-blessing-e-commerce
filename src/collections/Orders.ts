@@ -19,41 +19,40 @@ const snapshotProductData: CollectionBeforeChangeHook = async ({ data, req }) =>
       if (productId && req.payload) {
         try {
           // Fetch the current product data snapshot
-          const productDoc = await req.payload.findByID({
+          const productDoc = (await req.payload.findByID({
             collection: 'products',
             id: productId as string,
             depth: 1, // Ensure the image relationship is populated
-          }) as any
+          })) as any
 
-           const currentItem = data.items[i] as any
+          const currentItem = data.items[i] as any
 
-           currentItem.productTitle = productDoc.title
+          currentItem.productTitle = productDoc.title
 
           // 🟢 FIX: Accessing the ID from the populated Media relationship
-                    // -----------------------------------------------------------
-                    
-                    // 1. Get the image field object from the array (productDoc.images[0])
-                    const imageField = productDoc?.images?.[0]; 
+          // -----------------------------------------------------------
 
-                    if (imageField) {
-                        // 2. The relationship target is imageField.image.
-                        //    Check if it's a populated object (not a string ID).
-                        if (typeof imageField.image === 'object' && imageField.image !== null) {
-                            // If populated, save the ID of the Media document
-                            currentItem.productImage = imageField.image.id;
-                        } else {
-                            // If it's a string ID (depth wasn't enough/correct), save the ID directly
-                            currentItem.productImage = imageField.image; 
-                        }
-                    } else {
-                        currentItem.productImage = null;
-                    }
-                    
-                } catch (error) {
-                    req.payload.logger.error({ 
-                        msg: `Error snapshotting product ${productId} for new order.`, 
-                        error,
-                    });
+          // 1. Get the image field object from the array (productDoc.images[0])
+          const imageField = productDoc?.images?.[0]
+
+          if (imageField) {
+            // 2. The relationship target is imageField.image.
+            //    Check if it's a populated object (not a string ID).
+            if (typeof imageField.image === 'object' && imageField.image !== null) {
+              // If populated, save the ID of the Media document
+              currentItem.productImage = imageField.image.id
+            } else {
+              // If it's a string ID (depth wasn't enough/correct), save the ID directly
+              currentItem.productImage = imageField.image
+            }
+          } else {
+            currentItem.productImage = null
+          }
+        } catch (error) {
+          req.payload.logger.error({
+            msg: `Error snapshotting product ${productId} for new order.`,
+            error,
+          })
           // Decide how to handle failure: throw error, or proceed with nulls
           // For production, you would typically throw an error to fail the order creation.
         }
@@ -140,6 +139,16 @@ export const Orders: CollectionConfig = {
       type: 'number',
       defaultValue: 0,
       min: 0,
+    },
+    {
+      name: 'shippingMethod',
+      type: 'select',
+      options: [
+        { label: 'Standard Delivery', value: 'standard' },
+        { label: 'Express Delivery', value: 'express' },
+        { label: 'Store Pickup', value: 'pickup' },
+      ],
+      defaultValue: 'standard',
     },
     {
       name: 'tax',
@@ -231,11 +240,25 @@ export const Orders: CollectionConfig = {
     },
 
     {
+      name: 'paymentMethod',
+      type: 'select',
+      options: [
+        { label: 'Paystack (Online)', value: 'paystack' },
+        { label: 'Card (In-Person)', value: 'card_manual' },
+        { label: 'Bank Transfer', value: 'bank_transfer' },
+        { label: 'Cash', value: 'cash' },
+        { label: 'Mobile Money', value: 'mobile_money' },
+      ],
+      defaultValue: 'paystack',
+      required: true,
+    },
+    {
       name: 'paymentStatus',
       type: 'select',
       options: [
         { label: 'Pending', value: 'pending' },
         { label: 'Paid', value: 'paid' },
+        { label: 'Failed', value: 'failed' },
         { label: 'Refunded', value: 'refunded' },
       ],
       defaultValue: 'pending',
@@ -250,7 +273,26 @@ export const Orders: CollectionConfig = {
         },
       },
     },
+    {
+      name: 'paymentReference',
+      type: 'text',
+      admin: { description: 'Payment gateway reference or receipt number' },
+    },
     { name: 'transactionId', type: 'text' },
+    {
+      name: 'paymentNotes',
+      type: 'textarea',
+      admin: {
+        description: 'Additional payment details (e.g., bank transfer proof, cash receipt number)',
+      },
+    },
+    {
+      name: 'paidAt',
+      type: 'date',
+      admin: {
+        readOnly: true,
+      },
+    },
   ],
   hooks: {
     beforeChange: [snapshotProductData],
