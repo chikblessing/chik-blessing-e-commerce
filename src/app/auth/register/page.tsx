@@ -4,7 +4,6 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
-
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     firstName: '',
@@ -36,8 +35,9 @@ export default function RegisterPage() {
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required'
     if (!formData.email.trim()) newErrors.email = 'Email is required'
     if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required'
-    else if (!/^\+?\d{7,15}$/.test(formData.phoneNumber.trim())) newErrors.phoneNumber = 'Enter a valid phone number'
-    if (!formData.dateOfBirth.trim()) newErrors.dateOfBirth ='Date of Birth is required'
+    else if (!/^\+?\d{7,15}$/.test(formData.phoneNumber.trim()))
+      newErrors.phoneNumber = 'Enter a valid phone number'
+    if (!formData.dateOfBirth.trim()) newErrors.dateOfBirth = 'Date of Birth is required'
     if (!formData.password) newErrors.password = 'Password is required'
     if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters'
     if (formData.password !== formData.confirmPassword) {
@@ -118,7 +118,6 @@ export default function RegisterPage() {
             />
             {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
           </div>
-          
 
           {/* Email Field */}
           <div>
@@ -156,9 +155,11 @@ export default function RegisterPage() {
               value={formData.phoneNumber}
               onChange={handleInputChange}
             />
-            {errors.phoneNumber && <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>}
+            {errors.phoneNumber && (
+              <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>
+            )}
           </div>
-           {/* Date of Birth Field */}
+          {/* Date of Birth Field */}
           <div>
             <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-1">
               Date of Birth
@@ -175,7 +176,9 @@ export default function RegisterPage() {
               value={formData.dateOfBirth}
               onChange={handleInputChange}
             />
-            {errors.dateOfBirth && <p className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</p>}
+            {errors.dateOfBirth && (
+              <p className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</p>
+            )}
           </div>
 
           {/* Password Field */}
