@@ -37,6 +37,6 @@ export interface CustomUser extends TypedUser {
   cart?: CartItem[]
 
   // 🟢 FIX: Use proper relationship structure matching Payload collection definitions
-  wishlist?: string[] // Array of product IDs (assuming IDs are strings)
+  wishlist?: { product: string; id?: string | null }[] // Array of product relationship objects
   orderHistory?: { order: string; id?: string | null }[] // Array of order relationship objects
 }

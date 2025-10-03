@@ -7,16 +7,13 @@ import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
 import { homeStatic } from '@/endpoints/seed/home-static'
 
-import { RenderBlocks } from '@/blocks/RenderBlocks'
-import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
-import PageClient from './page.client'
-import { LivePreviewListener } from '@/components/LivePreviewListener'
 import HeroSection from '@/components/pageComponents/HeroSection'
 import BannerSlider from '@/components/pageComponents/BannerSlider'
 import FeaturedProducts from '@/components/pageComponents/FeaturedProducts/FeaturedProducts'
 import CounterSection from '@/components/pageComponents/Counter/CounterSection'
 import TopSellingProducts from '@/components/pageComponents/TopSellingProduct/TopSellingProducts'
+import { FaqSection } from '@/components/pageComponents/Faq/FaqSection'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -49,7 +46,6 @@ type Args = {
 }
 
 export default async function Page({ params: paramsPromise }: Args) {
-  const { isEnabled: draft } = await draftMode()
   const { slug = 'home' } = await paramsPromise
   const url = '/' + slug
 
@@ -68,27 +64,16 @@ export default async function Page({ params: paramsPromise }: Args) {
     return <PayloadRedirects url={url} />
   }
 
-  const { hero, layout } = page
-
   return (
-    // <article className="pt-16 pb-24">
-    //   <PageClient />
-    //   {/* Allows redirects for valid pages too */}
-    //   <PayloadRedirects disableNotFound url={url} />
-
-    //   {draft && <LivePreviewListener />}
-
-    //   <RenderHero {...hero} />
-    //   <RenderBlocks blocks={layout} />
-    // </article>
     <>
-    <div className="pb-[50px] bg-[#F8F6F6]">
-    <HeroSection />
-    <BannerSlider />
-    <FeaturedProducts />
-    <CounterSection />
-    <TopSellingProducts />
-    </div>
+      <div className="pb-[50px] bg-[#F8F6F6]">
+        <HeroSection />
+        <BannerSlider />
+        <FeaturedProducts />
+        <CounterSection />
+        <TopSellingProducts />
+        <FaqSection />
+      </div>
     </>
   )
 }

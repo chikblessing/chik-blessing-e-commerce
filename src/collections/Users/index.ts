@@ -273,6 +273,21 @@ export const Users: CollectionConfig = {
       ],
     },
     {
+      name: 'wishlist',
+      type: 'array',
+      admin: {
+        condition: (data) => (data as CustomUser).role === 'customer',
+      },
+      fields: [
+        {
+          name: 'product',
+          type: 'relationship',
+          relationTo: 'products',
+          required: true,
+        },
+      ],
+    },
+    {
       name: 'orderHistory',
       type: 'array',
       admin: {

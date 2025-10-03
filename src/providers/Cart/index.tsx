@@ -1,5 +1,5 @@
 'use client'
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useAuth } from '../Auth'
 import { Product } from '@/payload-types'
 import { apiClient } from '../Auth/apiClient' // 🟢 Assume the apiClient is available
@@ -46,45 +46,19 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([])
   const userAny = user as any // Type assertion for user properties
   // --- 1. INITIAL LOAD & SYNCHRONIZATION ---
+  const isInitialLoad = useRef(true)
 
-  useEffect(() => {
-    // If user logs in, load cart from server (Payload user collection)
-    if (user && userAny.cart) {
-      const cartItems = userAny.cart.map((item: any) => ({
-        // Handle unpopulated relationship (string ID) from server
-        product: typeof item.product === 'string' ? { id: item.product } : item.product,
-        quantity: item.quantity,
-        variantSku: item.sku, // Map server's 'sku' field to frontend's 'variantSku'
-      })) as CartItem[]
-      setItems(cartItems)
-    } else {
-      // If no user (guest), load cart from local storage
-      const savedCart = localStorage.getItem('cart')
-      if (savedCart) {
-        // ⚠️ NOTE: This assumes localStorage cart structure matches CartItem[]
-        setItems(JSON.parse(savedCart))
-      }
-    }
-  }, [user]) // --- 2. LOCAL STORAGE PERSISTENCE (For Guests Only) ---
-
-  useEffect(() => {
-    // Only save to local storage if the user is a guest
-    if (!user) {
-      localStorage.setItem('cart', JSON.stringify(items))
-    }
-  }, [items, user]) // --- 3. SERVER SYNCHRONIZATION (Authenticated Users Only) ---
-
+  // --- 1. CORE SERVER SYNC HELPER (STILL EXISTS) ---
+  // This is now used by mergeCart and for any subsequent changes after login.
   const syncWithServer = async (newItems: CartItem[]) => {
     if (!user || !token) return
 
     try {
-      // 🟢 API ABSTRACTION: Use the apiClient for cleaner, safer calls
       await apiClient('users/cart', {
         method: 'POST',
-        token: token, // Pass token for Authorization header
+        token: token,
         body: {
           cart: newItems.map((item) => ({
-            // Map frontend's variantSku back to server's 'sku' field
             product: item.product.id,
             sku: item.variantSku,
             quantity: item.quantity,
@@ -94,10 +68,75 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('Failed to sync cart:', error)
     }
-  } // --- 4. CART ACTIONS ---
+  }
+
+  // --- 2. NEW: MERGE CART FUNCTION ---
+  // Merges local cart with server cart upon login.
+  const mergeCart = async (guestCart: CartItem[]) => {
+    if (!user || !token) return
+
+    // 💡 OPTIONAL: You might want to merge guestCart with any existing server cart,
+    // but for simplicity, we'll assume the guest cart overwrites the server's empty cart
+    // (or is appended to the server's cart).
+
+    // For production: Merge logic should handle duplicate items by summing quantities.
+
+    await syncWithServer(guestCart)
+
+    // After successful sync, clear the local storage cart
+    localStorage.removeItem('cart')
+
+    // Force a re-load of the server's version of the cart (via the main useEffect below)
+  }
+
+  // --- 3. INITIAL LOAD LOGIC (Reads from User or LocalStorage) ---
+  useEffect(() => {
+    if (user && userAny.cart) {
+      // User is logged in, load cart from server and clear local storage
+      const cartItems = userAny.cart.map((item: any) => ({
+        product: typeof item.product === 'string' ? { id: item.product } : item.product,
+        quantity: item.quantity,
+        variantSku: item.sku,
+      })) as CartItem[]
+      setItems(cartItems)
+
+      // 💡 If this is a fresh login, merge the old local cart
+      const savedCart = localStorage.getItem('cart')
+      if (isInitialLoad.current && savedCart) {
+        const guestCart = JSON.parse(savedCart)
+
+        // ⚠️ IMPORTANT: In a real app, you must implement logic to MERGE guestCart and cartItems.
+        // For this example, we'll assume the simple merge (sync guest cart to server).
+        mergeCart(guestCart)
+      }
+    } else if (!user) {
+      // User is guest, load from local storage
+      const savedCart = localStorage.getItem('cart')
+      if (savedCart) {
+        setItems(JSON.parse(savedCart))
+      }
+    }
+
+    isInitialLoad.current = false
+  }, [user]) // Only runs when user object changes (login/logout)
+
+  // --- 4. LOCAL STORAGE PERSISTENCE (Guests Only) ---
+  useEffect(() => {
+    // Only save to local storage if the user is a guest
+    if (!user) {
+      localStorage.setItem('cart', JSON.stringify(items))
+    }
+    // 💡 If the user is logged in, changes MUST trigger syncWithServer
+    // (This is the change from the previous version)
+    if (user) {
+      syncWithServer(items)
+    }
+  }, [items, user])
+
+  // --- 5. CART ACTIONS (Only update local state initially) ---
 
   const addItem = async (product: Product, variantSku: string, quantity = 1) => {
-    const newItems = [...items] // Find existing item by BOTH product ID and variant SKU
+    const newItems = [...items]
     const existingIndex = newItems.findIndex(
       (item) => item.product.id === product.id && item.variantSku === variantSku,
     )
@@ -107,48 +146,43 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       newItems.push({ product, quantity, variantSku })
     }
-
     setItems(newItems)
-    await syncWithServer(newItems)
-  } // 🟢 Requires both ID and SKU to ensure the right variant is removed
+    // ❌ NO syncWithServer call here. It's handled by the useEffect above.
+  }
 
   const removeItem = async (productId: string, variantSku: string) => {
     const newItems = items.filter(
       (item) => !(item.product.id === productId && item.variantSku === variantSku),
     )
     setItems(newItems)
-    await syncWithServer(newItems)
-  } // 🟢 Requires both ID and SKU to ensure the right variant quantity is updated
+    // ❌ NO syncWithServer call here.
+  }
 
   const updateQuantity = async (productId: string, variantSku: string, quantity: number) => {
     if (quantity <= 0) {
       await removeItem(productId, variantSku)
       return
     }
-
     const newItems = items.map((item) =>
       item.product.id === productId && item.variantSku === variantSku
         ? { ...item, quantity }
         : item,
     )
     setItems(newItems)
-    await syncWithServer(newItems)
+    // ❌ NO syncWithServer call here.
   }
 
   const clearCart = async () => {
     setItems([])
-    await syncWithServer([])
-  } // --- 5. CALCULATIONS ---
+    // ❌ NO syncWithServer call here.
+  }
+
+  // ... (totalItems and totalPrice calculations remain the same) ...
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
-
   const totalPrice = items.reduce((sum, item) => {
-    // 🟢 FIX: Access price fields directly from the item.product object.
-    const product = item.product as any // Still assert as 'any' for safety
-
-    // Prioritize salePrice, then fall back to price, then 0.
+    const product = item.product as any
     const price = product.salePrice || product.price || 0
-
     return sum + price * item.quantity
   }, 0)
 

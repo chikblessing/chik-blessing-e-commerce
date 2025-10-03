@@ -433,6 +433,12 @@ export interface User {
         id?: string | null;
       }[]
     | null;
+  wishlist?:
+    | {
+        product: string | Product;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Order history is automatically managed by the system
    */
@@ -665,6 +671,7 @@ export interface Order {
   }[];
   subtotal: number;
   shipping?: number | null;
+  shippingMethod?: ('standard' | 'express' | 'pickup') | null;
   tax?: number | null;
   total: number;
   delivery?: {
@@ -702,8 +709,18 @@ export interface Order {
     postalCode: string;
     country: string;
   };
-  paymentStatus: 'pending' | 'paid' | 'refunded';
+  paymentMethod: 'paystack' | 'card_manual' | 'bank_transfer' | 'cash' | 'mobile_money';
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  /**
+   * Payment gateway reference or receipt number
+   */
+  paymentReference?: string | null;
   transactionId?: string | null;
+  /**
+   * Additional payment details (e.g., bank transfer proof, cash receipt number)
+   */
+  paymentNotes?: string | null;
+  paidAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1075,15 +1092,40 @@ export interface Review {
  */
 export interface ShippingZone {
   id: string;
+  /**
+   * e.g., "Lagos Mainland", "Abuja", "Other States"
+   */
   name: string;
-  country: string;
-  state?: string | null;
-  city?: string | null;
-  postalCode?: string | null;
-  rate: number;
-  minOrderSubtotal?: number | null;
-  maxOrderSubtotal?: number | null;
-  isDefault?: boolean | null;
+  /**
+   * States/regions covered by this shipping zone
+   */
+  states: {
+    state: string;
+    id?: string | null;
+  }[];
+  /**
+   * Base shipping cost in Naira
+   */
+  baseRate: number;
+  /**
+   * Order total for free shipping (0 = no free shipping)
+   */
+  freeShippingThreshold?: number | null;
+  /**
+   * Additional cost for express delivery
+   */
+  expressRate?: number | null;
+  estimatedDays?: {
+    /**
+     * Standard delivery days
+     */
+    standard?: number | null;
+    /**
+     * Express delivery days
+     */
+    express?: number | null;
+  };
+  isActive?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1786,6 +1828,7 @@ export interface OrdersSelect<T extends boolean = true> {
       };
   subtotal?: T;
   shipping?: T;
+  shippingMethod?: T;
   tax?: T;
   total?: T;
   delivery?:
@@ -1817,8 +1860,12 @@ export interface OrdersSelect<T extends boolean = true> {
         postalCode?: T;
         country?: T;
       };
+  paymentMethod?: T;
   paymentStatus?: T;
+  paymentReference?: T;
   transactionId?: T;
+  paymentNotes?: T;
+  paidAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1844,14 +1891,22 @@ export interface ReviewsSelect<T extends boolean = true> {
  */
 export interface ShippingZonesSelect<T extends boolean = true> {
   name?: T;
-  country?: T;
-  state?: T;
-  city?: T;
-  postalCode?: T;
-  rate?: T;
-  minOrderSubtotal?: T;
-  maxOrderSubtotal?: T;
-  isDefault?: T;
+  states?:
+    | T
+    | {
+        state?: T;
+        id?: T;
+      };
+  baseRate?: T;
+  freeShippingThreshold?: T;
+  expressRate?: T;
+  estimatedDays?:
+    | T
+    | {
+        standard?: T;
+        express?: T;
+      };
+  isActive?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1886,6 +1941,12 @@ export interface UsersSelect<T extends boolean = true> {
         product?: T;
         quantity?: T;
         addedAt?: T;
+        id?: T;
+      };
+  wishlist?:
+    | T
+    | {
+        product?: T;
         id?: T;
       };
   orderHistory?:

@@ -1,22 +1,24 @@
-import React from 'react'
+'use client'
 
-import { HeaderThemeProvider } from './HeaderTheme'
-import { ThemeProvider } from './Theme'
+import React from 'react'
 import { AuthProvider } from './Auth'
 import { CartProvider } from './Cart'
 import { WishlistProvider } from './Wishlist'
+import { HeaderThemeProvider } from './HeaderTheme'
+import { ThemeProvider } from './Theme'
 
-export const Providers: React.FC<{
+interface ProvidersProps {
   children: React.ReactNode
-}> = ({ children }) => {
+}
+
+export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider>
       <HeaderThemeProvider>
         <AuthProvider>
-          {' '}
           <CartProvider>
-            <WishlistProvider>{children}</WishlistProvider>{' '}
-          </CartProvider>{' '}
+            <WishlistProvider>{children}</WishlistProvider>
+          </CartProvider>
         </AuthProvider>
       </HeaderThemeProvider>
     </ThemeProvider>
