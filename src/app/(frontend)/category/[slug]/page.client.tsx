@@ -65,7 +65,7 @@ export default function CategoryClient({ category }: CategoryClientProps) {
         setProducts(data.docs || [])
 
         // Extract unique brands
-        const brandList =
+       const brandList: string[] =
           data.docs
             ?.map((product: Product) => product.brand)
             .filter(
