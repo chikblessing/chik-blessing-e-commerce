@@ -63,6 +63,7 @@ export async function POST() {
         brand: 'CBCS Premium',
         status: 'published',
         categories: createdCategories.filter((cat) => cat.slug === 'cocoa').map((cat) => cat.id),
+        images: [], // Empty array for now - images can be added later via admin
         rating: {
           average: 4.5,
           count: 23,
@@ -81,6 +82,7 @@ export async function POST() {
         brand: 'CBCS Coffee',
         status: 'published',
         categories: createdCategories.filter((cat) => cat.slug === 'coffee').map((cat) => cat.id),
+        images: [], // Empty array for now - images can be added later via admin
         rating: {
           average: 4.8,
           count: 45,
