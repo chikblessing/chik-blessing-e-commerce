@@ -65,7 +65,14 @@ export default function CategoryClient({ category }: CategoryClientProps) {
         setProducts(data.docs || [])
 
         // Extract unique brands
-        const uniqueBrands = [...new Set(data.docs?.map((product: Product) => product.brand) || [])]
+        const uniqueBrands = [
+          ...new Set(
+            data.docs
+              ?.map((product: Product) => product.brand)
+              .filter((brand): brand is string => typeof brand === 'string' && brand.length > 0) ||
+              [],
+          ),
+        ]
         setBrands(uniqueBrands)
       } catch (error) {
         console.error('Error fetching products:', error)
