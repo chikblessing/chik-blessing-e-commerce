@@ -391,7 +391,7 @@ export const Products: CollectionConfig = {
               id: categoryId,
               data: {
                 productsCount: products.totalDocs,
-              } as unknown,
+              } as any,
             })
           } catch (error) {
             req.payload.logger.error({
