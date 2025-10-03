@@ -30,7 +30,7 @@ export async function POST() {
       },
     ]
 
-    const createdCategories = []
+    const createdCategories: any[] = []
     for (const categoryData of categories) {
       try {
         const existingCategory = await payload.find({
@@ -45,25 +45,51 @@ export async function POST() {
             data: categoryData,
           })
           createdCategories.push(category)
+        } else {
+          createdCategories.push(existingCategory.docs[0])
         }
       } catch (error) {
         console.error(`Error creating category ${categoryData.title}:`, error)
       }
     }
 
-    // Create sample products
+    // Create sample products with proper typing
+    const cocoaCategory = createdCategories.find((cat) => cat.slug === 'cocoa')
+    const coffeeCategory = createdCategories.find((cat) => cat.slug === 'coffee')
+
     const products = [
       {
         title: 'Premium Dark Cocoa Powder',
         slug: 'premium-dark-cocoa-powder',
-        description: 'Rich, dark cocoa powder perfect for baking and beverages',
+        description: {
+          root: {
+            type: 'root',
+            children: [
+              {
+                type: 'paragraph',
+                version: 1,
+                children: [
+                  {
+                    type: 'text',
+                    version: 1,
+                    text: 'Rich, dark cocoa powder perfect for baking and beverages. Made from the finest cocoa beans.',
+                  },
+                ],
+              },
+            ],
+            direction: null,
+            format: '',
+            indent: 0,
+            version: 1,
+          },
+        },
         shortDescription: 'Premium quality dark cocoa powder',
         price: 2500,
         salePrice: 2200,
         brand: 'CBCS Premium',
-        status: 'published',
-        categories: createdCategories.filter((cat) => cat.slug === 'cocoa').map((cat) => cat.id),
-        images: [], // Empty array for now - images can be added later via admin
+        status: 'published' as const,
+        categories: cocoaCategory ? [cocoaCategory.id] : [],
+        images: [],
         rating: {
           average: 4.5,
           count: 23,
@@ -71,18 +97,41 @@ export async function POST() {
         inventory: {
           stock: 50,
           sku: 'COCOA-001',
+          trackInventory: true,
+          lowStockThreshold: 10,
         },
       },
       {
         title: 'Organic Coffee Beans',
         slug: 'organic-coffee-beans',
-        description: 'Freshly roasted organic coffee beans from local farms',
+        description: {
+          root: {
+            type: 'root',
+            children: [
+              {
+                type: 'paragraph',
+                version: 1,
+                children: [
+                  {
+                    type: 'text',
+                    version: 1,
+                    text: 'Freshly roasted organic coffee beans from local farms. Perfect for brewing your morning cup.',
+                  },
+                ],
+              },
+            ],
+            direction: null,
+            format: '',
+            indent: 0,
+            version: 1,
+          },
+        },
         shortDescription: 'Premium organic coffee beans',
         price: 3500,
         brand: 'CBCS Coffee',
-        status: 'published',
-        categories: createdCategories.filter((cat) => cat.slug === 'coffee').map((cat) => cat.id),
-        images: [], // Empty array for now - images can be added later via admin
+        status: 'published' as const,
+        categories: coffeeCategory ? [coffeeCategory.id] : [],
+        images: [],
         rating: {
           average: 4.8,
           count: 45,
@@ -90,11 +139,13 @@ export async function POST() {
         inventory: {
           stock: 30,
           sku: 'COFFEE-001',
+          trackInventory: true,
+          lowStockThreshold: 10,
         },
       },
     ]
 
-    const createdProducts = []
+    const createdProducts: any[] = []
     for (const productData of products) {
       try {
         const existingProduct = await payload.find({
@@ -106,7 +157,7 @@ export async function POST() {
         if (existingProduct.docs.length === 0) {
           const product = await payload.create({
             collection: 'products',
-            data: productData,
+            data: productData as any, // Type assertion to bypass strict typing
           })
           createdProducts.push(product)
         }
@@ -123,10 +174,10 @@ export async function POST() {
         products: createdProducts.length,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error seeding sample data:', error)
     return Response.json(
-      { error: 'Failed to seed sample data', details: error.message },
+      { error: 'Failed to seed sample data', details: error?.message || 'Unknown error' },
       { status: 500 },
     )
   }
