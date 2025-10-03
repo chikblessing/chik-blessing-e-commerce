@@ -111,18 +111,25 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
 
   const featuredImage = product.images?.find((img) => img.isFeature) || product.images?.[0]
   const displayPrice = product.salePrice || product.price
+  const imageUrl = featuredImage?.image?.url || ProductImage
 
   return (
     <div className="border border-[#084710] rounded-xl bg-white p-3">
       <div className="relative mb-6">
         <Link href={`/product/${product.slug}`}>
-          <Image
-            src={featuredImage?.image?.url || ProductImage}
-            alt={featuredImage?.alt || product.title}
-            className="w-full h-60 object-cover rounded-2xl hover:opacity-90 transition-opacity cursor-pointer"
-            width={300}
-            height={400}
-          />
+          <div className="w-full h-60 bg-gray-100 rounded-2xl overflow-hidden">
+            <Image
+              src={imageUrl}
+              alt={featuredImage?.alt || product.title}
+              className="w-full h-full object-cover hover:opacity-90 transition-opacity cursor-pointer"
+              width={300}
+              height={400}
+              onError={(e) => {
+                // Fallback to placeholder if image fails to load
+                e.currentTarget.src = ProductImage.src
+              }}
+            />
+          </div>
         </Link>
         <button
           onClick={handleWishlistClick}
