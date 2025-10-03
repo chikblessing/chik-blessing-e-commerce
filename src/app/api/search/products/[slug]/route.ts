@@ -3,15 +3,16 @@
 import { getPayload } from 'payload'
 import config from '../../../../../payload.config'
 
-export async function GET(request: Request, { params }: { params: { slug: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
+    const { slug } = await params
     const payload = await getPayload({ config })
 
     // Fetch main product
     const productResults = await payload.find({
       collection: 'products',
       where: {
-        slug: { equals: params.slug },
+        slug: { equals: slug },
         status: { equals: 'published' },
       },
       limit: 1,
@@ -57,7 +58,8 @@ export async function GET(request: Request, { params }: { params: { slug: string
       relatedProducts: relatedData.docs || [],
     })
   } catch (error) {
-    console.error(`Product API Error for slug ${params.slug}:`, error)
+    const { slug } = await params
+    console.error(`Product API Error for slug ${slug}:`, error)
     return Response.json({ error: 'Failed to retrieve product details.' }, { status: 500 })
   }
 }
