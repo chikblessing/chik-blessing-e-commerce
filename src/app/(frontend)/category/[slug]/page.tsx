@@ -10,8 +10,9 @@ interface CategoryPageProps {
 
 async function getCategory(slug: string) {
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SERVER_URL}/api/search/categories?where[slug][equals]=${slug}&where[isActive][equals]=true`,
+      `${baseUrl}/api/search/categories?where[slug][equals]=${slug}&where[isActive][equals]=true`,
       {
         next: { revalidate: 60 },
       },

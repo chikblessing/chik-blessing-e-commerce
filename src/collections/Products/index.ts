@@ -75,7 +75,7 @@ export const Products: CollectionConfig = {
       name: 'images',
       type: 'array',
       maxRows: 10,
-      required: true,
+      required: false, // Made optional to allow seeding without images
       fields: [
         {
           name: 'image',
