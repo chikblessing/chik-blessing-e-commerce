@@ -69,8 +69,9 @@ export default function CategoryClient({ category }: CategoryClientProps) {
           ...new Set(
             data.docs
               ?.map((product: Product) => product.brand)
-              .filter((brand): brand is string => typeof brand === 'string' && brand.length > 0) ||
-              [],
+              .filter(
+                (brand: any): brand is string => typeof brand === 'string' && brand.length > 0,
+              ) || [],
           ),
         ]
         setBrands(uniqueBrands)
