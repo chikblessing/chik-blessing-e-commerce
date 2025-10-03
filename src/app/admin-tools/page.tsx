@@ -1,6 +1,7 @@
-'use client'
 
+'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function AdminToolsPage() {
   const [loading, setLoading] = useState(false)
@@ -94,19 +95,19 @@ export default function AdminToolsPage() {
         <h2 className="text-xl font-semibold mb-4">Quick Links:</h2>
         <ul className="space-y-2">
           <li>
-            <a href="/category/cocoa" className="text-blue-600 hover:underline">
+            <Link href="/category/cocoa" className="text-blue-600 hover:underline">
               Test Cocoa Category Page
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="/category/coffee" className="text-blue-600 hover:underline">
+            <Link href="/category/coffee" className="text-blue-600 hover:underline">
               Test Coffee Category Page
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="/admin" className="text-blue-600 hover:underline">
+            <Link href="/admin" className="text-blue-600 hover:underline">
               Payload Admin Panel
-            </a>
+            </Link>
           </li>
         </ul>
       </div>
