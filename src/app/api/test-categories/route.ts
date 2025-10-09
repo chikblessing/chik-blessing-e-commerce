@@ -26,7 +26,7 @@ export async function GET() {
       cocoaCategory: cocoaCategory.docs,
       totalCategories: allCategories.totalDocs,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Test Categories API Error:', error)
     return Response.json(
       {
