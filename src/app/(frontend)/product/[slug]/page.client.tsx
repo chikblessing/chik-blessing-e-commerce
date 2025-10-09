@@ -379,7 +379,7 @@ export default function ProductClient({
         </div>
       </div>
 
-      {/* Related Products */}
+      {/* Related Product */}
       {relatedProducts.length > 0 && (
         <div>
           <h2 className="text-2xl font-bold text-center mb-8">Related Products</h2>
