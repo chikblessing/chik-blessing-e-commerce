@@ -35,7 +35,7 @@ export async function Footer() {
       {/* Subscribe box end */}
 
       <div className="min-h-[300px] mt-auto border-t border-border bg-[#F8F6F6] text-black pt-24">
-        <div className="container py-8 px-4 md:px-6 lg:px-8">
+        <div className="container py-24 lg:py-8 px-4 md:px-6 lg:px-8">
           {/* Main Footer Content */}
           <div className="grid grid-cols-12 gap-8 lg:gap-12">
             {/* Brand Section */}
@@ -148,9 +148,12 @@ export async function Footer() {
                   <p className="block text-sm md:text-base text-[#00000099] hover:text-[#07470F] transition-colors duration-200">
                     Delivery options and timeline
                   </p>
+                  <Link
+                    href="/report-product">
                   <p className="block text-sm md:text-base text-[#00000099] hover:text-[#07470F] transition-colors duration-200">
-                    How to return a product
+                    Return a product
                   </p>
+                  </Link>
                 </nav>
               </div>
 

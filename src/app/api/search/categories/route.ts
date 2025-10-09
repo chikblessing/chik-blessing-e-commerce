@@ -1,53 +1,49 @@
-// app/api/search/categories/route.ts - Frontend category search
-
 import { getPayload } from 'payload'
 import config from '../../../../payload.config'
 
-// Helper to safely parse an integer or return a default value
-const safeParseInt = (value: string | null, defaultValue: number): number => {
-  const parsed = parseInt(value || '', 10)
-  return isNaN(parsed) ? defaultValue : parsed
-}
-
 export async function GET(request: Request) {
   try {
-    const payload = await getPayload({ config })
     const { searchParams } = new URL(request.url)
+    const payload = await getPayload({ config })
 
-    // Build where clause
+    // Build where clause from search params
     const where: any = {}
 
-    // Filter by active status
-    const isActive = searchParams.get('where[isActive][equals]')
-    if (isActive !== null) {
-      where.isActive = { equals: isActive === 'true' }
+    // Handle where[slug][equals] parameter
+    const slugEquals = searchParams.get('where[slug][equals]')
+    if (slugEquals) {
+      where.slug = { equals: slugEquals }
     }
 
-    // Filter by slug
-    const slug = searchParams.get('where[slug][equals]')
-    if (slug) {
-      where.slug = { equals: slug }
+    // Handle where[isActive][equals] parameter
+    const isActiveEquals = searchParams.get('where[isActive][equals]')
+    if (isActiveEquals) {
+      where.isActive = { equals: isActiveEquals === 'true' }
     }
 
-    // Filter by parent category
-    const parent = searchParams.get('where[parent][equals]')
-    if (parent) {
-      where.parent = { equals: parent }
+    // Handle where[parent][equals] parameter
+    const parentEquals = searchParams.get('where[parent][equals]')
+    if (parentEquals) {
+      where.parent = { equals: parentEquals }
     }
 
-    // Get categories
-    const categories = await payload.find({
+    // Get limit parameter
+    const limit = parseInt(searchParams.get('limit') || '10')
+    const page = parseInt(searchParams.get('page') || '1')
+
+    // Fetch categories
+    const result = await payload.find({
       collection: 'categories',
       where,
-      limit: safeParseInt(searchParams.get('limit'), 50),
-      page: safeParseInt(searchParams.get('page'), 1),
-      sort: searchParams.get('sort') || 'sortOrder',
-      depth: 1,
+      limit,
+      page,
+      sort: 'sortOrder',
+      depth: 2,
     })
 
-    return Response.json(categories)
+    return Response.json(result)
   } catch (error) {
-    console.error('Error fetching categories:', error)
+    console.error('Categories API Error:', error)
     return Response.json({ error: 'Failed to fetch categories' }, { status: 500 })
   }
 }

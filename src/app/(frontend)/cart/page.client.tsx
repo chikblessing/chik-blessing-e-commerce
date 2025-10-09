@@ -2,12 +2,14 @@
 
 import React from 'react'
 import { useCart } from '@/providers/Cart'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import ProductImage from '../../../../public/assets/image1.png'
 
 export default function CartClient() {
   const { items, totalItems, totalPrice, updateQuantity, clearCart, removeItem } = useCart()
+  const router = useRouter()
 
   const handleQuantityChange = (productId: string, variantSku: string, newQuantity: number) => {
     if (newQuantity < 1) return
@@ -25,7 +27,7 @@ export default function CartClient() {
   return (
     <>
       <div className="container mx-auto px-4 mt-[100px]">
- <div className="flex items-center justify-between my-6">
+        <div className="flex items-center justify-between my-6">
           <h2 className="text-2xl font-semibold">Your Cart ({totalItems} items)</h2>
           {totalItems > 0 && (
             <button
@@ -193,7 +195,10 @@ export default function CartClient() {
                 </div>
 
                 {/* Checkout Button */}
-                <button className="w-full mt-6 bg-[#084710] text-white py-3 px-4 rounded-md hover:bg-black transition-colors font-medium flex items-center justify-center gap-2">
+                <button
+                  onClick={() => router.push('/checkout')}
+                  className="w-full mt-6 bg-[#084710] text-white py-3 px-4 rounded-md hover:bg-black transition-colors font-medium flex items-center justify-center gap-2"
+                >
                   Go to Checkout
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                     <path

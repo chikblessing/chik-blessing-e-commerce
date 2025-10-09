@@ -77,7 +77,7 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
   const displayPrice = product.salePrice || product.price
 
   return (
-    <div className="border border-[#084710] rounded-xl bg-white p-3">
+    <div className="border border-[#084710] rounded-xl bg-white p-3 flex flex-col h-full">
       <div className="relative mb-6">
         <Image
           src={featuredImage?.image?.url || ProductImage}
@@ -118,7 +118,7 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
         </button>
       </div>
 
-      <div>
+      <div className="flex-grow flex flex-col">
         <div className="text-sm text-muted-foreground">
           {product.status === 'out-of-stock' ? 'Out of stock' : 'Available'}
         </div>
@@ -129,7 +129,8 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
 
       <button
         onClick={handleAddToCart}
-        className="w-full flex justify-center gap-3 items-center py-3 px-8 bg-[#084710] hover:bg-black rounded-xl transition-colors duration-200"
+        className="w-full flex justify-center gap-3 items-center py-3 px-8 bg-[#084710] hover:bg-black rounded-xl transition-colors duration-200 mt-auto"
+        style={{ marginTop: 'auto' }}
       >
         <span>
           <svg

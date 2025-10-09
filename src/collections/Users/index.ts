@@ -88,23 +88,11 @@ export const Users: CollectionConfig = {
       name: 'firstName',
       type: 'text',
       required: false,
-      validate: (value: string | null | undefined, { data }: { data: Partial<CustomUser> }) => {
-        if (data?.role === 'customer' && !value) {
-          return 'First Name is required for customers.'
-        }
-        return true
-      },
     },
     {
       name: 'lastName',
       type: 'text',
       required: false,
-      validate: (value: string | null | undefined, { data }: { data: Partial<CustomUser> }) => {
-        if (data?.role === 'customer' && !value) {
-          return 'Last Name is required for customers.'
-        }
-        return true
-      },
     },
     {
       name: 'avatar',
@@ -124,9 +112,9 @@ export const Users: CollectionConfig = {
       defaultValue: 'customer',
       required: true,
       access: {
-        update: ({ req }) => {
-          // This is only checking if req.user exists, so no specific typing needed here
-          return Boolean(req.user)
+        update: ({ req: { user } }) => {
+          // Only authenticated users can update role
+          return Boolean(user)
         },
       },
     },
@@ -303,6 +291,20 @@ export const Users: CollectionConfig = {
           required: true,
         },
       ],
+    },
+    {
+      name: 'verificationOTP',
+      type: 'text',
+      admin: {
+        hidden: true, // Hide from admin UI
+      },
+    },
+    {
+      name: 'otpExpiry',
+      type: 'date',
+      admin: {
+        hidden: true, // Hide from admin UI
+      },
     },
   ],
   timestamps: true,

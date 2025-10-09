@@ -1,6 +1,7 @@
 // storage-adapter-import-placeholder
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 
 import sharp from 'sharp' // sharp-import
 import path from 'path'
@@ -17,6 +18,7 @@ import { Promotions } from './collections/Promotions'
 import { Orders } from './collections/Orders'
 import { Reviews } from './collections/Reviews'
 import { ShippingZones } from './collections/ShippingZones'
+import { ProductReports } from './collections/ProductReports'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { plugins } from './plugins'
@@ -27,6 +29,21 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 export default buildConfig({
+  // Temporarily disable email to fix the transport error
+  // email: nodemailerAdapter({
+  //   // Resend SMTP configuration
+  //   transport: {
+  //     host: 'smtp.resend.com',
+  //     port: 587,
+  //     secure: false,
+  //     auth: {
+  //       user: 'resend',
+  //       pass: process.env.RESEND_API_KEY,
+  //     },
+  //   },
+  //   defaultFromAddress: 'chikblessingglobal@gmail.com',
+  //   defaultFromName: 'Chik Blessing Global Store',
+  // }),
   admin: {
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
@@ -78,6 +95,7 @@ export default buildConfig({
     Orders,
     Reviews,
     ShippingZones,
+    ProductReports,
     Users,
   ],
   cors: [getServerSideURL()].filter(Boolean),

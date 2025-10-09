@@ -76,6 +76,7 @@ export interface Config {
     orders: Order;
     reviews: Review;
     'shipping-zones': ShippingZone;
+    'product-reports': ProductReport;
     users: User;
     redirects: Redirect;
     forms: Form;
@@ -97,6 +98,7 @@ export interface Config {
     orders: OrdersSelect<false> | OrdersSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     'shipping-zones': ShippingZonesSelect<false> | ShippingZonesSelect<true>;
+    'product-reports': ProductReportsSelect<false> | ProductReportsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -448,6 +450,8 @@ export interface User {
         id?: string | null;
       }[]
     | null;
+  verificationOTP?: string | null;
+  otpExpiry?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -512,15 +516,17 @@ export interface Product {
    * If set, this will override the regular price
    */
   salePrice?: number | null;
-  images: {
-    image: string | Media;
-    alt: string;
-    /**
-     * Use as main product image
-     */
-    isFeature?: boolean | null;
-    id?: string | null;
-  }[];
+  images?:
+    | {
+        image: string | Media;
+        alt: string;
+        /**
+         * Use as main product image
+         */
+        isFeature?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Additional product images for gallery
    */
@@ -695,6 +701,8 @@ export interface Order {
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   shippingAddress: {
     name: string;
+    phone: string;
+    email: string;
     street: string;
     city: string;
     state: string;
@@ -1131,6 +1139,66 @@ export interface ShippingZone {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-reports".
+ */
+export interface ProductReport {
+  id: string;
+  name: string;
+  state:
+    | 'Abia'
+    | 'Adamawa'
+    | 'Akwa Ibom'
+    | 'Anambra'
+    | 'Bauchi'
+    | 'Bayelsa'
+    | 'Benue'
+    | 'Borno'
+    | 'Cross River'
+    | 'Delta'
+    | 'Ebonyi'
+    | 'Edo'
+    | 'Ekiti'
+    | 'Enugu'
+    | 'FCT'
+    | 'Gombe'
+    | 'Imo'
+    | 'Jigawa'
+    | 'Kaduna'
+    | 'Kano'
+    | 'Katsina'
+    | 'Kebbi'
+    | 'Kogi'
+    | 'Kwara'
+    | 'Lagos'
+    | 'Nasarawa'
+    | 'Niger'
+    | 'Ogun'
+    | 'Ondo'
+    | 'Osun'
+    | 'Oyo'
+    | 'Plateau'
+    | 'Rivers'
+    | 'Sokoto'
+    | 'Taraba'
+    | 'Yobe'
+    | 'Zamfara';
+  requesterType: 'individual' | 'organization';
+  reason: 'misleading' | 'inappropriate' | 'counterfeit' | 'prohibited';
+  additionalDetails?: string | null;
+  email: string;
+  phone: string;
+  companyName?: string | null;
+  productLink: string;
+  status: 'pending' | 'investigating' | 'resolved' | 'dismissed';
+  /**
+   * Internal notes for admin use only
+   */
+  adminNotes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1337,6 +1405,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'shipping-zones';
         value: string | ShippingZone;
+      } | null)
+    | ({
+        relationTo: 'product-reports';
+        value: string | ProductReport;
       } | null)
     | ({
         relationTo: 'users';
@@ -1844,6 +1916,8 @@ export interface OrdersSelect<T extends boolean = true> {
     | T
     | {
         name?: T;
+        phone?: T;
+        email?: T;
         street?: T;
         city?: T;
         state?: T;
@@ -1912,6 +1986,25 @@ export interface ShippingZonesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-reports_select".
+ */
+export interface ProductReportsSelect<T extends boolean = true> {
+  name?: T;
+  state?: T;
+  requesterType?: T;
+  reason?: T;
+  additionalDetails?: T;
+  email?: T;
+  phone?: T;
+  companyName?: T;
+  productLink?: T;
+  status?: T;
+  adminNotes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
@@ -1955,6 +2048,8 @@ export interface UsersSelect<T extends boolean = true> {
         order?: T;
         id?: T;
       };
+  verificationOTP?: T;
+  otpExpiry?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;

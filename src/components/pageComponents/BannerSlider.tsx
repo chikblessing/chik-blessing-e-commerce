@@ -62,7 +62,8 @@ export default function BannerSlider() {
 
   return (
     <>
-      <div className="w-full container mx-auto my-8">
+    <div className="bg-white">
+      <div className="w-full container mx-auto py-2 my-8">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-center">Shop by Category</h2>
           <p className="text-gray-600 text-center mt-2">
@@ -136,6 +137,7 @@ export default function BannerSlider() {
             ))}
           </Swiper>
         )}
+      </div>
       </div>
 
       <style jsx global>{`
