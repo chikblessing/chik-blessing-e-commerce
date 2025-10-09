@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, Suspense } from 'react'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/providers/Auth'
 
-export default function VerificationPage() {
+function VerificationContent() {
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -84,7 +84,7 @@ export default function VerificationPage() {
       } else {
         setError(result.error || 'Invalid verification code. Please try again.')
       }
-    } catch (err) {
+    } catch (_err) {
       setError('An error occurred during verification. Please try again.')
     } finally {
       setIsLoading(false)
@@ -112,7 +112,7 @@ export default function VerificationPage() {
       } else {
         setError(result.error || 'Failed to send new code. Please try again.')
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to send new code. Please try again.')
     } finally {
       setIsLoading(false)
@@ -195,5 +195,19 @@ export default function VerificationPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function VerificationPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="w-5 h-5 border-2 border-green-700 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      }
+    >
+      <VerificationContent />
+    </Suspense>
   )
 }
