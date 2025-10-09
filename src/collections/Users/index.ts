@@ -112,9 +112,9 @@ export const Users: CollectionConfig = {
       defaultValue: 'customer',
       required: true,
       access: {
-        update: ({ req }) => {
-          // This is only checking if req.user exists, so no specific typing needed here
-          return Boolean(req.user)
+        update: ({ req: { user } }) => {
+          // Only authenticated users can update role
+          return Boolean(user)
         },
       },
     },

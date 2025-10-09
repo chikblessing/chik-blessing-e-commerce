@@ -138,7 +138,7 @@ export const ProductReports: CollectionConfig = {
         { label: 'Dismissed', value: 'dismissed' },
       ],
       access: {
-        update: authenticated,
+        update: ({ req }) => !!req.user,
       },
     },
     {
@@ -149,8 +149,8 @@ export const ProductReports: CollectionConfig = {
         description: 'Internal notes for admin use only',
       },
       access: {
-        read: authenticated,
-        update: authenticated,
+        read: ({ req }) => !!req.user,
+        update: ({ req }) => !!req.user,
       },
     },
   ],
