@@ -57,7 +57,7 @@ export default function CartClient() {
                 {items.map((item) => {
                   const product = item.product as any
                   const featuredImage =
-                    product.images?.find((img: unknown) => img.isFeature) || product.images?.[0]
+                    product.images?.find((img: any) => img.isFeature) || product.images?.[0]
                   const displayPrice = product.salePrice || product.price
 
                   return (
