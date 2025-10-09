@@ -73,14 +73,17 @@ export const authOptions: NextAuthOptions = {
           })
 
           if (existingUsers.docs.length === 0) {
+            // Type assertion for Google profile
+            const googleProfile = profile as any
+
             // Create new user in Payload
             await payload.create({
               collection: 'users',
               data: {
                 email: user.email!,
                 name: user.name || profile?.name || 'Google User',
-                firstName: profile?.given_name || '',
-                lastName: profile?.family_name || '',
+                firstName: googleProfile?.given_name || '',
+                lastName: googleProfile?.family_name || '',
                 role: 'customer',
                 _verified: true, // Google users are pre-verified
                 // Don't set password for OAuth users
