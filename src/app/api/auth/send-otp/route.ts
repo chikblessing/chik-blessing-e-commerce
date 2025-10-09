@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
 
       const resendData = JSON.parse(responseText)
       console.log('Email sent successfully:', resendData)
-    } catch (emailError: unknown) {
+    } catch (emailError: any) {
       console.error('Failed to send email:', emailError)
       return NextResponse.json(
         {
