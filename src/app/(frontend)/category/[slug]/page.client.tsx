@@ -8,13 +8,16 @@ interface Category {
   id: string
   title: string
   slug: string
-  description?: string
-  productsCount: number
-  parent?: {
-    id: string
-    title: string
-    slug: string
-  }
+  description?: string | null
+  productsCount?: number | null
+  parent?:
+    | string
+    | {
+        id: string
+        title: string
+        slug: string
+      }
+    | null
 }
 
 interface Product {
@@ -50,9 +53,12 @@ export default function CategoryClient({ category }: CategoryClientProps) {
 
   // Filter states
   const [selectedBrands, setSelectedBrands] = useState<string[]>([])
-  const [priceRange, setPriceRange] = useState<[number, number]>([50, 200])
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000])
+  const [maxPrice] = useState<number>(50000)
   const [selectedRatings, setSelectedRatings] = useState<number[]>([])
-  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false)
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(true)
+  const [isPriceOpen, setIsPriceOpen] = useState<boolean>(true)
+  const [isRatingOpen, setIsRatingOpen] = useState<boolean>(true)
   const [brands, setBrands] = useState<string[]>([])
 
   useEffect(() => {
@@ -65,11 +71,11 @@ export default function CategoryClient({ category }: CategoryClientProps) {
         setProducts(data.docs || [])
 
         // Extract unique brands
-       const brandList: string[] =
+        const brandList: string[] =
           data.docs
             ?.map((product: Product) => product.brand)
             .filter(
-              (brand: any): brand is string => typeof brand === 'string' && brand.length > 0,
+              (brand: unknown): brand is string => typeof brand === 'string' && brand.length > 0,
             ) || []
 
         const uniqueBrands: string[] = [...new Set(brandList)]
@@ -124,13 +130,13 @@ export default function CategoryClient({ category }: CategoryClientProps) {
 
   return (
     <>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto mt-28 px-4 py-8">
         {/* Breadcrumb */}
         <nav className="mb-6 text-sm text-gray-600">
           <Link href="/" className="hover:text-[#084710]">
             Home
           </Link>
-          {category.parent && (
+          {category.parent && typeof category.parent === 'object' && (
             <>
               <span className="mx-2">/</span>
               <Link href={`/category/${category.parent.slug}`} className="hover:text-[#084710]">
@@ -146,11 +152,17 @@ export default function CategoryClient({ category }: CategoryClientProps) {
           <div className="lg:col-span-1"></div>
           <div className="lg:col-span-2">
             <div className="mb-6">
-              <h1 className="text-3xl font-bold">{category.title}</h1>
-              {category.description && <p className="text-gray-600 mt-2">{category.description}</p>}
+              <h1 className="text-3xl text-center font-bold">{category.title}</h1>
+              {/* {category.description && <p className="text-gray-600 mt-2">{category.description}</p>}
               <p className="text-sm text-gray-500 mt-2">
                 {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
-              </p>
+              </p> */}
+              {category.productsCount !== null && category.productsCount !== undefined && (
+                <p className="text-sm text-gray-500 mt-2">
+                  {category.productsCount} total product{category.productsCount !== 1 ? 's' : ''} in
+                  category
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -179,7 +191,9 @@ export default function CategoryClient({ category }: CategoryClientProps) {
               <div className="mb-6 text-sm text-gray-600">
                 <div className="mb-1">Category</div>
                 <div className="font-semibold text-gray-900 mb-1">{category.title}</div>
-                {category.parent && <div>Parent: {category.parent.title}</div>}
+                {category.parent && typeof category.parent === 'object' && (
+                  <div>Parent: {category.parent.title}</div>
+                )}
               </div>
 
               {/* Brand Filter */}
@@ -223,9 +237,16 @@ export default function CategoryClient({ category }: CategoryClientProps) {
 
               {/* Price Filter */}
               <div className="mb-6">
-                <button className="flex items-center justify-between w-full py-3 font-semibold text-left">
+                <button
+                  className="flex items-center justify-between w-full py-3 font-semibold text-left"
+                  onClick={() => setIsPriceOpen(!isPriceOpen)}
+                >
                   <span>PRICE</span>
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    className={`w-4 h-4 transform transition-transform ${isPriceOpen ? 'rotate-180' : ''}`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -234,40 +255,118 @@ export default function CategoryClient({ category }: CategoryClientProps) {
                   </svg>
                 </button>
 
-                <div className="mt-4">
-                  <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                    <span>₦{priceRange[0]}</span>
-                    <span>₦{priceRange[1]}</span>
-                  </div>
+                {isPriceOpen && (
+                  <div className="mt-4 space-y-4">
+                    {/* Price Range Display */}
+                    <div className="flex items-center justify-between text-sm font-medium text-gray-700">
+                      <span className="bg-gray-100 px-3 py-1 rounded-md">
+                        ₦{priceRange[0].toLocaleString()}
+                      </span>
+                      <span className="text-gray-400">-</span>
+                      <span className="bg-gray-100 px-3 py-1 rounded-md">
+                        ₦{priceRange[1].toLocaleString()}
+                      </span>
+                    </div>
 
-                  <div className="w-full flex gap-4 mt-4">
-                    <input
-                      type="number"
-                      placeholder="₦50"
-                      className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#084710]"
-                      value={priceRange[0]}
-                      onChange={(e) =>
-                        setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])
-                      }
-                    />
-                    <input
-                      type="number"
-                      placeholder="₦200"
-                      className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                      value={priceRange[1]}
-                      onChange={(e) =>
-                        setPriceRange([priceRange[0], parseInt(e.target.value) || 200])
-                      }
-                    />
+                    {/* Dual Range Slider */}
+                    <div className="relative pt-2 pb-6">
+                      <div className="relative h-2 bg-gray-200 rounded-full">
+                        {/* Active range bar */}
+                        <div
+                          className="absolute h-2 bg-[#084710] rounded-full"
+                          style={{
+                            left: `${(priceRange[0] / maxPrice) * 100}%`,
+                            right: `${100 - (priceRange[1] / maxPrice) * 100}%`,
+                          }}
+                        ></div>
+
+                        {/* Min Range Input */}
+                        <input
+                          type="range"
+                          min="0"
+                          max={maxPrice}
+                          step="100"
+                          value={priceRange[0]}
+                          onChange={(e) => {
+                            const value = Number(e.target.value)
+                            if (value < priceRange[1]) {
+                              setPriceRange([value, priceRange[1]])
+                            }
+                          }}
+                          className="absolute w-full h-2 bg-transparent appearance-none pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#084710] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#084710] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
+                        />
+
+                        {/* Max Range Input */}
+                        <input
+                          type="range"
+                          min="0"
+                          max={maxPrice}
+                          step="100"
+                          value={priceRange[1]}
+                          onChange={(e) => {
+                            const value = Number(e.target.value)
+                            if (value > priceRange[0]) {
+                              setPriceRange([priceRange[0], value])
+                            }
+                          }}
+                          className="absolute w-full h-2 bg-transparent appearance-none pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#084710] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-[#084710] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Manual Price Inputs */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Min Price</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max={priceRange[1]}
+                          value={priceRange[0]}
+                          onChange={(e) => {
+                            const value = Number(e.target.value)
+                            if (value >= 0 && value < priceRange[1]) {
+                              setPriceRange([value, priceRange[1]])
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#084710] focus:border-[#084710] outline-none text-sm"
+                          placeholder="Min"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Max Price</label>
+                        <input
+                          type="number"
+                          min={priceRange[0]}
+                          max={maxPrice}
+                          value={priceRange[1]}
+                          onChange={(e) => {
+                            const value = Number(e.target.value)
+                            if (value > priceRange[0] && value <= maxPrice) {
+                              setPriceRange([priceRange[0], value])
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#084710] focus:border-[#084710] outline-none text-sm"
+                          placeholder="Max"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Product Rating Filter */}
               <div className="mb-6">
-                <button className="flex items-center justify-between w-full py-3 font-semibold text-left">
+                <button
+                  className="flex items-center justify-between w-full py-3 font-semibold text-left"
+                  onClick={() => setIsRatingOpen(!isRatingOpen)}
+                >
                   <span>PRODUCT RATING</span>
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    className={`w-4 h-4 transform transition-transform ${isRatingOpen ? 'rotate-180' : ''}`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -276,22 +375,24 @@ export default function CategoryClient({ category }: CategoryClientProps) {
                   </svg>
                 </button>
 
-                <div className="space-y-3 mt-3">
-                  {[4, 3, 2, 1].map((rating) => (
-                    <label key={rating} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-[#084710] border-gray-300 rounded focus:ring-green-500"
-                        checked={selectedRatings.includes(rating)}
-                        onChange={() => handleRatingChange(rating)}
-                      />
-                      <div className="ml-3 flex items-center gap-2">
-                        <FilterStars count={rating} />
-                        <span className="text-sm text-gray-600">& Above</span>
-                      </div>
-                    </label>
-                  ))}
-                </div>
+                {isRatingOpen && (
+                  <div className="space-y-3 mt-3">
+                    {[4, 3, 2, 1].map((rating) => (
+                      <label key={rating} className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 text-[#084710] border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+                          checked={selectedRatings.includes(rating)}
+                          onChange={() => handleRatingChange(rating)}
+                        />
+                        <div className="ml-3 flex items-center gap-2">
+                          <FilterStars count={rating} />
+                          <span className="text-sm text-gray-600">& Above</span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Apply Filter Button */}

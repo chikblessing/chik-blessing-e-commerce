@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { SessionProvider } from 'next-auth/react'
 import { AuthProvider } from './Auth'
 import { CartProvider } from './Cart'
 import { WishlistProvider } from './Wishlist'
@@ -13,14 +14,16 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <ThemeProvider>
-      <HeaderThemeProvider>
-        <AuthProvider>
-          <CartProvider>
-            <WishlistProvider>{children}</WishlistProvider>
-          </CartProvider>
-        </AuthProvider>
-      </HeaderThemeProvider>
-    </ThemeProvider>
+    <SessionProvider>
+      <ThemeProvider>
+        <HeaderThemeProvider>
+          <AuthProvider>
+            <CartProvider>
+              <WishlistProvider>{children}</WishlistProvider>
+            </CartProvider>
+          </AuthProvider>
+        </HeaderThemeProvider>
+      </ThemeProvider>
+    </SessionProvider>
   )
 }

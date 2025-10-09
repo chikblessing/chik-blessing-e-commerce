@@ -219,6 +219,8 @@ export const Orders: CollectionConfig = {
       type: 'group',
       fields: [
         { name: 'name', type: 'text', required: true },
+        { name: 'phone', type: 'text', required: true },
+        { name: 'email', type: 'email', required: true },
         { name: 'street', type: 'text', required: true },
         { name: 'city', type: 'text', required: true },
         { name: 'state', type: 'text', required: true },
@@ -317,7 +319,7 @@ export const Orders: CollectionConfig = {
               await req.payload.update({
                 collection: 'users',
                 id: customerId,
-                data: { orderHistory } as any,
+                data: { orderHistory } as unknown,
               })
             }
           } catch (error) {

@@ -5,14 +5,22 @@ import Image from 'next/image'
 import { useCart } from '@/providers/Cart'
 import { useWishlist } from '@/providers/Wishlist'
 import ProductCard from '@/components/ProductCard'
+import ReviewSummary from '@/components/Reviews/ReviewSummary'
+import ReviewList from '@/components/Reviews/ReviewList'
+import ReviewForm from '@/components/Reviews/ReviewForm'
 import ProductImage from '../../../../../public/assets/image1.png'
 
 interface ProductClientProps {
   product: any
   relatedProducts: any[]
+  reviews: any[]
 }
 
-export default function ProductClient({ product, relatedProducts }: ProductClientProps) {
+export default function ProductClient({
+  product,
+  relatedProducts,
+  reviews: initialReviews,
+}: ProductClientProps) {
   const { addItem: addToCart } = useCart()
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist()
 
@@ -20,6 +28,8 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('details')
   const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [reviews, setReviews] = useState(initialReviews)
+  const [showReviewForm, setShowReviewForm] = useState(false)
 
   const images = product.images || []
   const featuredImage = images.find((img: any) => img.isFeature) || images[0]
@@ -53,6 +63,20 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
       }
     } catch (error) {
       console.error('Error updating wishlist:', error)
+    }
+  }
+
+  const handleReviewSubmitted = async () => {
+    setShowReviewForm(false)
+    // Refresh reviews
+    try {
+      const response = await fetch(`/api/products/${product.id}/reviews`)
+      if (response.ok) {
+        const data = await response.json()
+        setReviews(data.reviews)
+      }
+    } catch (error) {
+      console.error('Error refreshing reviews:', error)
     }
   }
 
@@ -298,41 +322,59 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
 
             {activeTab === 'reviews' && (
               <div className="space-y-6">
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">⭐</div>
-                  <h3 className="text-xl font-semibold mb-2">No reviews yet</h3>
-                  <p className="text-gray-600">Be the first to review this product!</p>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold">Customer Reviews</h3>
+                  <button
+                    onClick={() => setShowReviewForm(!showReviewForm)}
+                    className="bg-[#084710] text-white px-4 py-2 rounded-lg hover:bg-black transition-colors"
+                  >
+                    {showReviewForm ? 'Cancel' : 'Write a Review'}
+                  </button>
                 </div>
+
+                {showReviewForm && (
+                  <ReviewForm productId={product.id} onReviewSubmitted={handleReviewSubmitted} />
+                )}
+
+                <ReviewList reviews={reviews} />
               </div>
             )}
           </div>
 
           <div className="lg:col-span-1">
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h4 className="font-semibold mb-4">Specifications</h4>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Weight</span>
-                  <span className="font-medium">{product.inventory?.weight || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Brand</span>
-                  <span className="font-medium">{product.brand}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">SKU</span>
-                  <span className="font-medium">{product.inventory?.sku || 'N/A'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Stock</span>
-                  <span className="font-medium">{product.inventory?.stock || 0} units</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Eco-friendly</span>
-                  <span className="font-medium">Yes</span>
+            {activeTab === 'reviews' && product.rating && product.rating.count > 0 ? (
+              <ReviewSummary
+                average={product.rating.average}
+                count={product.rating.count}
+                breakdown={product.rating.breakdown}
+              />
+            ) : (
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <h4 className="font-semibold mb-4">Specifications</h4>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Weight</span>
+                    <span className="font-medium">{product.inventory?.weight || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Brand</span>
+                    <span className="font-medium">{product.brand}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">SKU</span>
+                    <span className="font-medium">{product.inventory?.sku || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Stock</span>
+                    <span className="font-medium">{product.inventory?.stock || 0} units</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Eco-friendly</span>
+                    <span className="font-medium">Yes</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

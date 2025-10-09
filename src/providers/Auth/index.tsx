@@ -1,9 +1,9 @@
 // providers/Auth/index.tsx
 'use client'
 import { createContext, useContext, useEffect, useState } from 'react'
-import { User } from '@/payload-types' 
-import { apiClient } from './apiClient' 
-
+import { useSession, signIn, signOut } from 'next-auth/react'
+import { User } from '@/payload-types'
+import { apiClient } from './apiClient'
 
 type AuthContextType = {
   user: User | null
@@ -14,6 +14,12 @@ type AuthContextType = {
   forgotPassword: (email: string) => Promise<void>
   resetPassword: (token: string, password: string) => Promise<void>
   verifyEmail: (token: string) => Promise<void>
+  sendOTP: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>
+  verifyOTP: (
+    email: string,
+    otp: string,
+  ) => Promise<{ success: boolean; message?: string; error?: string }>
+  loginWithGoogle: () => Promise<void>
   loading: boolean
 }
 
@@ -25,12 +31,11 @@ export const useAuth = () => {
   return context
 }
 
-
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const { data: session, status } = useSession()
 
   // 🟢 Improvement: Use a persistent function reference
   const updateAuth = (userData: User, authToken: string) => {
@@ -65,16 +70,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('payload-token')
-    if (storedToken) {
-      setToken(storedToken)
-      fetchMe(storedToken)
-    } else {
-      setLoading(false)
+    if (status === 'loading') {
+      setLoading(true)
+      return
     }
-  }, []) // Empty dependency array ensures this runs only once on mount
 
-  
+    if (session?.user) {
+      // User is authenticated via NextAuth (Google OAuth)
+      // Fetch the corresponding Payload user
+      const fetchPayloadUser = async () => {
+        try {
+          const data = await apiClient(`users?where[email][equals]=${session.user.email}`)
+          if (data.docs && data.docs.length > 0) {
+            setUser(data.docs[0])
+          }
+        } catch (error) {
+          console.error('Error fetching Payload user:', error)
+        } finally {
+          setLoading(false)
+        }
+      }
+      fetchPayloadUser()
+    } else {
+      // Check for Payload token in localStorage
+      const storedToken = localStorage.getItem('payload-token')
+      if (storedToken) {
+        setToken(storedToken)
+        fetchMe(storedToken)
+      } else {
+        setLoading(false)
+      }
+    }
+  }, [session, status])
 
   const login = async (email: string, password: string) => {
     // 🟢 Simplified Fetch: No need for manual headers/JSON parsing
@@ -87,28 +114,70 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const register = async (userData: any) => {
-    // 🟢 Simplified Fetch
-    const data = await apiClient('users', {
-      method: 'POST',
-      body: { ...userData, role: 'customer' }, // Enforce customer role
-    })
+    try {
+      // 🟢 Prepare data for Payload - combine firstName and lastName into name
+      const payloadData = {
+        ...userData,
+        name: `${userData.firstName} ${userData.lastName}`, // Combine names for required name field
+        role: 'customer', // Enforce customer role
+      }
 
-    if (!(data.user as any)._verified) {
+      // 🟢 Simplified Fetch
+      const data = await apiClient('users', {
+        method: 'POST',
+        body: payloadData,
+      })
+
+      // Check if we have a response with doc or user
+      const user = data.doc || data.user
+
+      // Check if user object exists
+      if (!user) {
+        return {
+          success: false,
+          error: 'User creation failed - no user data returned',
+        }
+      }
+
+      // Check if user needs verification (default to true if _verified field doesn't exist or is false)
+      const isVerified = user._verified === true
+
+      if (!isVerified) {
+        return {
+          success: true,
+          needsVerification: true,
+          message: 'Please check your email to verify your account before logging in.',
+          user: user,
+        }
+      }
+
+      // Only update auth if user is already verified and we have a token
+      if (data.token) {
+        updateAuth(user, data.token)
+      }
+
+      return { success: true, needsVerification: false }
+    } catch (error: any) {
+      console.error('Registration error:', error)
       return {
-        success: true,
-        needsVerification: true,
-        message: 'Please check your email to verify your account before logging in.',
+        success: false,
+        error: error.message || 'Registration failed',
       }
     }
-
-    updateAuth(data.user, data.token)
-    return { success: true, needsVerification: false }
   }
 
   const logout = () => {
     // 🟢 Simplified Logout
     clearAuth()
+    // Also sign out from NextAuth if user is signed in via Google
+    if (session) {
+      signOut({ callbackUrl: '/' })
+    }
     // Note: No need to hit a logout endpoint in Payload for JWTs, clearing the token is enough
+  }
+
+  const loginWithGoogle = async () => {
+    await signIn('google', { callbackUrl: '/' })
   }
 
   const forgotPassword = async (email: string) => {
@@ -140,6 +209,52 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
+  const sendOTP = async (email: string) => {
+    try {
+      const response = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        return { success: true, message: data.message }
+      } else {
+        return { success: false, error: data.error }
+      }
+    } catch (error) {
+      return { success: false, error: 'Network error' }
+    }
+  }
+
+  const verifyOTP = async (email: string, otp: string) => {
+    try {
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, otp }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Just set the user data since we don't have a token from OTP verification
+        setUser(data.user)
+        return { success: true, message: data.message }
+      } else {
+        return { success: false, error: data.error }
+      }
+    } catch (error) {
+      return { success: false, error: 'Network error' }
+    }
+  }
+
   const value = {
     user,
     token,
@@ -149,6 +264,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     forgotPassword,
     resetPassword,
     verifyEmail,
+    sendOTP,
+    verifyOTP,
+    loginWithGoogle,
     loading,
   }
 

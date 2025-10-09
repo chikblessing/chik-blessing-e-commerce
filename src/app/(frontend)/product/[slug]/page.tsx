@@ -47,6 +47,22 @@ const queryRelatedProducts = cache(async (categoryIds: string[], currentProductI
   return result.docs || []
 })
 
+const queryProductReviews = cache(async (productId: string) => {
+  const payload = await getPayload({ config: configPromise })
+
+  const result = await payload.find({
+    collection: 'reviews',
+    where: {
+      and: [{ product: { equals: productId } }, { status: { equals: 'approved' } }],
+    },
+    depth: 1,
+    sort: '-createdAt',
+    limit: 50,
+  })
+
+  return result.docs || []
+})
+
 export default async function ProductPage({ params: paramsPromise }: Args) {
   const params = await paramsPromise
   const product = await queryProductBySlug({ slug: params.slug })
@@ -66,7 +82,16 @@ export default async function ProductPage({ params: paramsPromise }: Args) {
 
   const relatedProducts = await queryRelatedProducts(categoryIds, product.id)
 
-  return <ProductClient product={product as any} relatedProducts={relatedProducts} />
+  // Get product reviews
+  const reviews = await queryProductReviews(product.id)
+
+  return (
+    <ProductClient
+      product={product as any}
+      relatedProducts={relatedProducts}
+      reviews={reviews as any}
+    />
+  )
 }
 
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {

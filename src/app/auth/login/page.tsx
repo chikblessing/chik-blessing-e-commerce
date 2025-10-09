@@ -3,27 +3,40 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/providers/Auth'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const router = useRouter()
+  const { login, loginWithGoogle } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await login(email, password)
+      router.push('/') // Redirect to home page
+    } catch (error: any) {
+      setError(error.message || 'Login failed')
+    } finally {
       setIsLoading(false)
-      // Handle login logic here
-    }, 2000)
+    }
   }
 
-  const handleGoogleLogin = () => {
-    // Handle Google OAuth login
-    console.log('Google login clicked')
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle()
+    } catch (error) {
+      setError('Google login failed')
+    }
   }
 
   return (
@@ -39,6 +52,13 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
           {/* Email Field */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -55,7 +75,6 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-            
             </div>
           </div>
 

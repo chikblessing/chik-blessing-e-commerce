@@ -88,23 +88,11 @@ export const Users: CollectionConfig = {
       name: 'firstName',
       type: 'text',
       required: false,
-      validate: (value: string | null | undefined, { data }: { data: Partial<CustomUser> }) => {
-        if (data?.role === 'customer' && !value) {
-          return 'First Name is required for customers.'
-        }
-        return true
-      },
     },
     {
       name: 'lastName',
       type: 'text',
       required: false,
-      validate: (value: string | null | undefined, { data }: { data: Partial<CustomUser> }) => {
-        if (data?.role === 'customer' && !value) {
-          return 'Last Name is required for customers.'
-        }
-        return true
-      },
     },
     {
       name: 'avatar',
@@ -303,6 +291,20 @@ export const Users: CollectionConfig = {
           required: true,
         },
       ],
+    },
+    {
+      name: 'verificationOTP',
+      type: 'text',
+      admin: {
+        hidden: true, // Hide from admin UI
+      },
+    },
+    {
+      name: 'otpExpiry',
+      type: 'date',
+      admin: {
+        hidden: true, // Hide from admin UI
+      },
     },
   ],
   timestamps: true,
