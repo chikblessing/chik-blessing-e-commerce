@@ -83,11 +83,19 @@ export const Orders: CollectionConfig = {
   admin: {
     useAsTitle: 'orderNumber',
     // 🟢 UPDATE: Added delivery dates to the default view
-    defaultColumns: ['orderNumber', 'customer', 'total', 'status', 'delivery.expectedDeliveryDate'],
+    defaultColumns: [
+      'orderNumber',
+      'customer',
+      'guestEmail',
+      'total',
+      'status',
+      'delivery.expectedDeliveryDate',
+    ],
   },
   fields: [
     { name: 'orderNumber', type: 'text', required: true, unique: true, admin: { readOnly: true } },
-    { name: 'customer', type: 'relationship', relationTo: 'users', required: true, index: true },
+    { name: 'customer', type: 'relationship', relationTo: 'users', required: false, index: true },
+    { name: 'guestEmail', type: 'email', admin: { description: 'Email for guest orders' } },
     {
       name: 'items',
       type: 'array',
