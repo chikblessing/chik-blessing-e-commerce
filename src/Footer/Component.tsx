@@ -148,12 +148,14 @@ export async function Footer() {
                   <p className="block text-sm md:text-base text-[#00000099] hover:text-[#07470F] transition-colors duration-200">
                     Delivery options and timeline
                   </p>
+                     <p className="block text-sm md:text-base text-[#00000099] hover:text-[#07470F] transition-colors duration-200">
                   <Link
                     href="/report-product">
-                  <p className="block text-sm md:text-base text-[#00000099] hover:text-[#07470F] transition-colors duration-200">
-                    Return a product
-                  </p>
+               
+                    Report a product
+                
                   </Link>
+                    </p>
                 </nav>
               </div>
 
