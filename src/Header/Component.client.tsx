@@ -353,7 +353,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Link href="/contact" className={getLinkClasses('/contact')}>
-                        <span className="text-[16px] flex-grow text-right">Payment options</span>
+                        <span className="text-[16px] flex-grow text-right">Return a product</span>
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
