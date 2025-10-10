@@ -3,6 +3,15 @@
 @tailwind utilities;
 
 @layer base {
+  /* Force light mode - override system preferences */
+  :root {
+    color-scheme: light only;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
   h1,
   h2,
   h3,

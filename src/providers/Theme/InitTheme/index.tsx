@@ -10,34 +10,15 @@ export const InitTheme: React.FC = () => {
       dangerouslySetInnerHTML={{
         __html: `
   (function () {
-    function getImplicitPreference() {
-      var mediaQuery = '(prefers-color-scheme: dark)'
-      var mql = window.matchMedia(mediaQuery)
-      var hasImplicitPreference = typeof mql.matches === 'boolean'
-
-      if (hasImplicitPreference) {
-        return mql.matches ? 'dark' : 'light'
-      }
-
-      return null
-    }
-
-    function themeIsValid(theme) {
-      return theme === 'light' || theme === 'dark'
-    }
-
-    var themeToSet = '${defaultTheme}'
-    var preference = window.localStorage.getItem('${themeLocalStorageKey}')
-
-    if (themeIsValid(preference)) {
-      themeToSet = preference
-    } else {
-      var implicitPreference = getImplicitPreference()
-
-      if (implicitPreference) {
-        themeToSet = implicitPreference
-      }
-    }
+    // Force light mode - ignore system preferences
+    var themeToSet = 'light'
+    
+    // Optional: You can still allow users to manually switch if they have a preference saved
+    // Uncomment the lines below if you want to respect manual user preference from localStorage
+    // var preference = window.localStorage.getItem('${themeLocalStorageKey}')
+    // if (preference === 'light' || preference === 'dark') {
+    //   themeToSet = preference
+    // }
 
     document.documentElement.setAttribute('data-theme', themeToSet)
   })();
