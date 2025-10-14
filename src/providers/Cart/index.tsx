@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { useAuth } from '../Auth'
 import { Product } from '@/payload-types'
 import { apiClient } from '../Auth/apiClient' // 🟢 Assume the apiClient is available
+import toast from 'react-hot-toast'
 
 // ----------------------------------------------------------------------
 // TYPES
@@ -143,8 +144,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (existingIndex >= 0) {
       newItems[existingIndex].quantity += quantity
+      toast.success('Cart updated')
     } else {
       newItems.push({ product, quantity, variantSku })
+      toast.success('Added to cart')
     }
     setItems(newItems)
     // ❌ NO syncWithServer call here. It's handled by the useEffect above.
@@ -155,6 +158,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       (item) => !(item.product.id === productId && item.variantSku === variantSku),
     )
     setItems(newItems)
+    toast.success('Removed from cart')
     // ❌ NO syncWithServer call here.
   }
 
@@ -174,6 +178,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const clearCart = async () => {
     setItems([])
+    toast.success('Cart cleared')
     // ❌ NO syncWithServer call here.
   }
 

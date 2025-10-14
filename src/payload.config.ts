@@ -19,6 +19,7 @@ import { Orders } from './collections/Orders'
 import { Reviews } from './collections/Reviews'
 import { ShippingZones } from './collections/ShippingZones'
 import { ProductReports } from './collections/ProductReports'
+import { ContactSubmissions } from './collections/ContactSubmissions'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { plugins } from './plugins'
@@ -96,6 +97,7 @@ export default buildConfig({
     Reviews,
     ShippingZones,
     ProductReports,
+    ContactSubmissions,
     Users,
   ],
   cors: [getServerSideURL()].filter(Boolean),

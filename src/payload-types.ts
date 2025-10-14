@@ -77,6 +77,7 @@ export interface Config {
     reviews: Review;
     'shipping-zones': ShippingZone;
     'product-reports': ProductReport;
+    'contact-submissions': ContactSubmission;
     users: User;
     redirects: Redirect;
     forms: Form;
@@ -99,6 +100,7 @@ export interface Config {
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     'shipping-zones': ShippingZonesSelect<false> | ShippingZonesSelect<true>;
     'product-reports': ProductReportsSelect<false> | ProductReportsSelect<true>;
+    'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -665,7 +667,11 @@ export interface Promotion {
 export interface Order {
   id: string;
   orderNumber: string;
-  customer: string | User;
+  customer?: (string | null) | User;
+  /**
+   * Email for guest orders
+   */
+  guestEmail?: string | null;
   items: {
     product: string | Product;
     productTitle?: string | null;
@@ -1199,6 +1205,24 @@ export interface ProductReport {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions".
+ */
+export interface ContactSubmission {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  message: string;
+  status?: ('new' | 'in-progress' | 'resolved' | 'closed') | null;
+  /**
+   * Internal notes for staff only
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1409,6 +1433,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'product-reports';
         value: string | ProductReport;
+      } | null)
+    | ({
+        relationTo: 'contact-submissions';
+        value: string | ContactSubmission;
       } | null)
     | ({
         relationTo: 'users';
@@ -1887,6 +1915,7 @@ export interface PromotionsSelect<T extends boolean = true> {
 export interface OrdersSelect<T extends boolean = true> {
   orderNumber?: T;
   customer?: T;
+  guestEmail?: T;
   items?:
     | T
     | {
@@ -2000,6 +2029,20 @@ export interface ProductReportsSelect<T extends boolean = true> {
   productLink?: T;
   status?: T;
   adminNotes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions_select".
+ */
+export interface ContactSubmissionsSelect<T extends boolean = true> {
+  fullName?: T;
+  email?: T;
+  phone?: T;
+  message?: T;
+  status?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }

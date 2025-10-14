@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { useCart } from '@/providers/Cart'
 import { useWishlist } from '@/providers/Wishlist'
 import ProductCard from '@/components/ProductCard'
@@ -21,6 +22,7 @@ export default function ProductClient({
   relatedProducts,
   reviews: initialReviews,
 }: ProductClientProps) {
+  const router = useRouter()
   const { addItem: addToCart } = useCart()
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist()
 
@@ -28,6 +30,7 @@ export default function ProductClient({
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('details')
   const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [isBuyingNow, setIsBuyingNow] = useState(false)
   const [reviews, setReviews] = useState(initialReviews)
   const [showReviewForm, setShowReviewForm] = useState(false)
 
@@ -51,6 +54,21 @@ export default function ProductClient({
       console.error('Error adding to cart:', error)
     } finally {
       setIsAddingToCart(false)
+    }
+  }
+
+  const handleBuyNow = async () => {
+    if (isBuyingNow) return
+
+    setIsBuyingNow(true)
+    try {
+      const variantSku = product.inventory?.sku || product.id
+      await addToCart(product, variantSku, quantity)
+      router.push('/checkout')
+    } catch (error) {
+      console.error('Error during buy now:', error)
+    } finally {
+      setIsBuyingNow(false)
     }
   }
 
@@ -202,15 +220,33 @@ export default function ProductClient({
           {/* Action Buttons */}
           <div className="space-y-3">
             <button
-              onClick={handleAddToCart}
-              disabled={isAddingToCart || product.status !== 'published'}
+              onClick={handleBuyNow}
+              disabled={isBuyingNow || product.status !== 'published'}
               className={`w-full py-3 px-6 rounded-lg font-medium transition-colors ${
                 product.status !== 'published'
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : isAddingToCart
+                  : isBuyingNow
                     ? 'bg-gray-600 cursor-wait'
                     : 'bg-[#084710] hover:bg-black'
               } text-white`}
+            >
+              {product.status !== 'published'
+                ? 'Out of Stock'
+                : isBuyingNow
+                  ? 'Processing...'
+                  : 'Buy Now'}
+            </button>
+
+            <button
+              onClick={handleAddToCart}
+              disabled={isAddingToCart || product.status !== 'published'}
+              className={`w-full py-3 px-6 rounded-lg font-medium border-2 transition-colors ${
+                product.status !== 'published'
+                  ? 'border-gray-400 text-gray-400 cursor-not-allowed'
+                  : isAddingToCart
+                    ? 'border-gray-600 text-gray-600 cursor-wait'
+                    : 'border-[#084710] text-[#084710] hover:bg-[#084710] hover:text-white'
+              }`}
             >
               {product.status !== 'published'
                 ? 'Out of Stock'

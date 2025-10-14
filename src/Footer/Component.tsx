@@ -192,12 +192,12 @@ export async function Footer() {
               <p>© 2025 Chiks Blessing Global Limited. All rights reserved.</p>
               <div className="flex gap-4">
                 <Link
-                  href="/privacy"
+                  href="/privacy-policy"
                   className="hover:text-black/80 transition-colors duration-200"
                 >
                   Privacy Policy
                 </Link>
-                <Link href="/terms" className="hover:text-black/80 transition-colors duration-200">
+                <Link href="/terms-and-conditions" className="hover:text-black/80 transition-colors duration-200">
                   Terms of Service
                 </Link>
               </div>
