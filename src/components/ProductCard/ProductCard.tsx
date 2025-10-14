@@ -122,7 +122,9 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
         <div className="text-sm text-muted-foreground">
           {product.status === 'out-of-stock' ? 'Out of stock' : 'Available'}
         </div>
-        <h3 className="text-lg font-semibold my-2">{product.title}</h3>
+        <h3 className="text-lg font-semibold my-2 truncate w-full block" title={product.title}>
+          {product.title}
+        </h3>
         <StarRating rating={Math.round(product.rating.average)} />
         <p className="text-xl font-semibold my-2">₦{displayPrice.toLocaleString()}</p>
       </div>

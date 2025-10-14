@@ -4,11 +4,11 @@ import configPromise from '@payload-config'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { orderId: string } },
+  { params }: { params: Promise<{ orderId: string }> },
 ) {
   try {
     const payload = await getPayloadHMR({ config: configPromise })
-    const { orderId } = params
+    const { orderId } = await params
 
     if (!orderId) {
       return NextResponse.json({ error: 'Order ID is required' }, { status: 400 })
