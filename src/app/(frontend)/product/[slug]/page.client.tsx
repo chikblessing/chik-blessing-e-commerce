@@ -419,18 +419,19 @@ export default function ProductClient({
       {relatedProducts.length > 0 && (
         <div>
           <h2 className="text-2xl font-bold text-center mb-8">Related Products</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
             {relatedProducts.map((relatedProduct) => (
-              <ProductCard
-                key={relatedProduct.id}
-                product={relatedProduct}
-                onWishlistToggle={(productId, isInWishlist) => {
-                  console.log(`Product ${productId} wishlist status: ${isInWishlist}`)
-                }}
-                onAddToCart={(productId) => {
-                  console.log(`Added product ${productId} to cart`)
-                }}
-              />
+              <div key={relatedProduct.id} className="h-full">
+                <ProductCard
+                  product={relatedProduct}
+                  onWishlistToggle={(productId, isInWishlist) => {
+                    console.log(`Product ${productId} wishlist status: ${isInWishlist}`)
+                  }}
+                  onAddToCart={(productId) => {
+                    console.log(`Added product ${productId} to cart`)
+                  }}
+                />
+              </div>
             ))}
           </div>
         </div>

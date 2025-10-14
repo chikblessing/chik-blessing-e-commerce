@@ -74,18 +74,19 @@ export default function WishlistClient() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 auto-rows-fr">
             {wishlistItems.map((item) => (
-              <ProductCard
-                key={item.product.id}
-                product={item.product as any}
-                onWishlistToggle={(productId, isInWishlist) => {
-                  console.log(`Product ${productId} wishlist status: ${isInWishlist}`)
-                }}
-                onAddToCart={(productId) => {
-                  console.log(`Added product ${productId} to cart`)
-                }}
-              />
+              <div key={item.product.id} className="h-full">
+                <ProductCard
+                  product={item.product as any}
+                  onWishlistToggle={(productId, isInWishlist) => {
+                    console.log(`Product ${productId} wishlist status: ${isInWishlist}`)
+                  }}
+                  onAddToCart={(productId) => {
+                    console.log(`Added product ${productId} to cart`)
+                  }}
+                />
+              </div>
             ))}
           </div>
         )}
