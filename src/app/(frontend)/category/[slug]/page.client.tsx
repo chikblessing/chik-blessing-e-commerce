@@ -440,20 +440,21 @@ export default function CategoryClient({ category }: CategoryClientProps) {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 auto-rows-fr">
                 {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onWishlistToggle={(productId, isInWishlist) => {
-                      console.log(`Product ${productId} wishlist status: ${isInWishlist}`)
-                      // Here you can implement wishlist functionality
-                    }}
-                    onAddToCart={(productId) => {
-                      console.log(`Add product ${productId} to cart`)
-                      // Here you can implement add to cart functionality
-                    }}
-                  />
+                  <div key={product.id} className="h-full">
+                    <ProductCard
+                      product={product}
+                      onWishlistToggle={(productId, isInWishlist) => {
+                        console.log(`Product ${productId} wishlist status: ${isInWishlist}`)
+                        // Here you can implement wishlist functionality
+                      }}
+                      onAddToCart={(productId) => {
+                        console.log(`Add product ${productId} to cart`)
+                        // Here you can implement add to cart functionality
+                      }}
+                    />
+                  </div>
                 ))}
               </div>
             )}

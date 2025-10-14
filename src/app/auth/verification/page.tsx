@@ -3,13 +3,12 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
+import toast from 'react-hot-toast'
 import { useAuth } from '@/providers/Auth'
 
 function VerificationContent() {
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -29,7 +28,6 @@ function VerificationContent() {
     newOtp[index] = value
 
     setOtp(newOtp)
-    setError('')
 
     // Auto-focus next input
     if (value && index < 5) {
@@ -59,33 +57,31 @@ function VerificationContent() {
     e.preventDefault()
 
     if (!email) {
-      setError('Email is required for verification')
+      toast.error('Email is required for verification')
       return
     }
 
     const otpCode = otp.join('')
     if (otpCode.length !== 6) {
-      setError('Please enter all 6 digits')
+      toast.error('Please enter all 6 digits')
       return
     }
 
     setIsLoading(true)
-    setError('')
-    setSuccess('')
 
     try {
       const result = await verifyOTP(email, otpCode)
 
       if (result.success) {
-        setSuccess('Email verified successfully! Redirecting...')
+        toast.success('Email verified successfully! Redirecting...')
         setTimeout(() => {
           router.push('/') // Redirect to home page after successful verification
         }, 2000)
       } else {
-        setError(result.error || 'Invalid verification code. Please try again.')
+        toast.error(result.error || 'Invalid verification code. Please try again.')
       }
     } catch (_err) {
-      setError('An error occurred during verification. Please try again.')
+      toast.error('An error occurred during verification. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -93,27 +89,25 @@ function VerificationContent() {
 
   const handleRequestNewCode = async () => {
     if (!email) {
-      setError('Email is required to send verification code')
+      toast.error('Email is required to send verification code')
       return
     }
 
     setIsLoading(true)
-    setError('')
-    setSuccess('')
 
     try {
       const result = await sendOTP(email)
 
       if (result.success) {
-        setSuccess('New verification code sent to your email!')
+        toast.success('New verification code sent to your email!')
         // Clear current OTP
         setOtp(['', '', '', '', '', ''])
         inputRefs.current[0]?.focus()
       } else {
-        setError(result.error || 'Failed to send new code. Please try again.')
+        toast.error(result.error || 'Failed to send new code. Please try again.')
       }
     } catch (_err) {
-      setError('Failed to send new code. Please try again.')
+      toast.error('Failed to send new code. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -160,9 +154,6 @@ function VerificationContent() {
                 />
               ))}
             </div>
-
-            {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
-            {success && <p className="text-green-500 text-sm text-center mb-4">{success}</p>}
           </div>
 
           {/* Submit Button */}

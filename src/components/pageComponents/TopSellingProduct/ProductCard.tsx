@@ -123,16 +123,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
 
       <div>
-        <h3
-          className="text-lg font-semibold my-2 overflow-hidden"
-          title={product.title}
-          style={{
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            textOverflow: 'ellipsis',
-          }}
-        >
+        <h3 className="text-lg font-semibold my-2 truncate" title={product.title}>
           {product.title}
         </h3>
 

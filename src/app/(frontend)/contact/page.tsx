@@ -1,11 +1,74 @@
 'use client'
-import CounterItem from '@/components/pageComponents/Counter/CounterItem'
 import { Button } from '@/components/ui/button'
-import Image from 'next/image'
-import Link from 'next/link'
-import React from 'react'
+import React, { useState } from 'react'
+import toast from 'react-hot-toast'
 
-export default function AboutPage() {
+export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    message: '',
+  })
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value,
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Validate required fields
+    if (!formData.fullName || !formData.email || !formData.message) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Please enter a valid email address')
+      return
+    }
+
+    setSubmitting(true)
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit form')
+      }
+
+      toast.success(data.message || 'Thank you for contacting us!')
+      
+      // Reset form
+      setFormData({
+        fullName: '',
+        email: '',
+        phone: '',
+        message: '',
+      })
+    } catch (error: any) {
+      toast.error(error.message || 'Something went wrong. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <>
       <section
@@ -29,19 +92,23 @@ export default function AboutPage() {
       <div className=" bg-[#F0F0F0]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="bg-white py-24 px-24">
-            <form>
+            <form onSubmit={handleSubmit}>
               <h3 className="text-3xl font-bold py-2">Send us a Message</h3>
               <p className="text-[#1A1A1A99] text-md py-2">
                 Fill out the form below and we&apos;ll get back to you within 24 hours.
               </p>
               <div className="my-4">
-                <label htmlFor="full-name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
                   Full Name *
                 </label>
                 <input
                   type="text"
-                  id="full-name"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  id="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#084710] focus:border-transparent"
+                  required
+                  disabled={submitting}
                 />
               </div>
               <div className="my-4">
@@ -51,7 +118,11 @@ export default function AboutPage() {
                 <input
                   type="email"
                   id="email"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#084710] focus:border-transparent"
+                  required
+                  disabled={submitting}
                 />
               </div>
               <div className="my-4">
@@ -61,7 +132,10 @@ export default function AboutPage() {
                 <input
                   type="tel"
                   id="phone"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#084710] focus:border-transparent"
+                  disabled={submitting}
                 />
               </div>
               <div className="my-4">
@@ -71,15 +145,20 @@ export default function AboutPage() {
                 <textarea
                   id="message"
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={formData.message}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#084710] focus:border-transparent"
+                  required
+                  disabled={submitting}
                 />
               </div>
               <div className="my-4">
                 <Button
                   type="submit"
-                  className="flex gap-4 items-center bg-[#084710] text-white text-lg px-6 py-2 rounded-3xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={submitting}
+                  className="flex gap-4 items-center bg-[#084710] text-white text-lg px-6 py-2 rounded-3xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black transition-colors"
                 >
-                  <span> Submit </span>
+                  <span>{submitting ? 'Submitting...' : 'Submit'}</span>
                   <span>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

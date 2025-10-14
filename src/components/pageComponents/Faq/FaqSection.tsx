@@ -78,11 +78,7 @@ export const FaqSection = () => {
   return (
     <>
       <div className="mb-20">
-        <div className="py-11 container mx-auto">
-          <span className="p-3 border border-[#194754] text-[#194754] rounded-3xl font-semibold">
-            FAQs
-          </span>
-        </div>
+       
 
         <div className="py-11 container mx-auto bg-[#F4F4F4] rounded-xl">
           <h2 className="text-3xl text-center font-bold py-8">Frequently Asked Questions</h2>

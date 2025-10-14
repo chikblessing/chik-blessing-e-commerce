@@ -5,6 +5,7 @@ import { useCart } from '@/providers/Cart'
 import { useAuth } from '@/providers/Auth'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import toast from 'react-hot-toast'
 
 export default function CheckoutClient() {
   const { items, totalPrice, clearCart } = useCart()
@@ -12,7 +13,6 @@ export default function CheckoutClient() {
   const router = useRouter()
 
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'pickup'>('online')
   const [sameAsShipping, setSameAsShipping] = useState(true)
 
@@ -47,20 +47,20 @@ export default function CheckoutClient() {
 
   const validateForm = () => {
     if (!shippingForm.name || !shippingForm.phone || !shippingForm.email) {
-      setError('Please fill in all contact information')
+      toast.error('Please fill in all contact information')
       return false
     }
 
     if (paymentMethod === 'online') {
       if (!shippingForm.street || !shippingForm.city || !shippingForm.state) {
-        setError('Please fill in complete shipping address')
+        toast.error('Please fill in complete shipping address')
         return false
       }
     }
 
     if (!sameAsShipping && paymentMethod === 'online') {
       if (!billingForm.street || !billingForm.city || !billingForm.state) {
-        setError('Please fill in complete billing address')
+        toast.error('Please fill in complete billing address')
         return false
       }
     }
@@ -73,7 +73,6 @@ export default function CheckoutClient() {
 
     try {
       setSubmitting(true)
-      setError(null)
 
       const orderData = {
         items,
@@ -97,18 +96,20 @@ export default function CheckoutClient() {
 
       if (paymentMethod === 'pickup') {
         clearCart()
+        toast.success('Order placed successfully!')
         router.push(`/order-confirmation?orderId=${data.orderId}`)
       } else {
         const url = data?.data?.authorization_url || data?.authorization_url
         if (url) {
           clearCart()
+          toast.success('Redirecting to payment...')
           window.location.href = url
         } else {
           throw new Error('Missing Paystack URL')
         }
       }
     } catch (e: any) {
-      setError(e.message || 'Error processing checkout')
+      toast.error(e.message || 'Error processing checkout')
     } finally {
       setSubmitting(false)
     }
@@ -480,13 +481,6 @@ export default function CheckoutClient() {
                 </span>
               </div>
             </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-                {error}
-              </div>
-            )}
 
             {/* Place Order Button */}
             <button

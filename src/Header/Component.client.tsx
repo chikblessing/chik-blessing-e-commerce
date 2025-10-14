@@ -418,7 +418,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
                 </span>
                 <DropdownMenu>
                   <DropdownMenuTrigger>
-                    <div className="flex items-center text-lg gap-1">
+                    <div className="flex items-center font-semibold gap-1">
                       Account{' '}
                       <span>
                         <svg

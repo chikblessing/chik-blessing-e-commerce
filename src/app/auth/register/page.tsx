@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/providers/Auth'
+import toast from 'react-hot-toast'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -20,7 +21,6 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [generalError, setGeneralError] = useState('')
 
   const router = useRouter()
   const { register, loginWithGoogle, sendOTP } = useAuth()
@@ -31,9 +31,6 @@ export default function RegisterPage() {
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }))
-    }
-    if (generalError) {
-      setGeneralError('')
     }
   }
 
@@ -63,7 +60,6 @@ export default function RegisterPage() {
     if (!validateForm()) return
 
     setIsLoading(true)
-    setGeneralError('')
 
     try {
       const result = await register({
@@ -84,7 +80,7 @@ export default function RegisterPage() {
             // Redirect to verification page with email parameter
             router.push(`/auth/verification?email=${encodeURIComponent(formData.email)}`)
           } else {
-            setGeneralError(
+            toast.error(
               'Registration successful, but failed to send verification email. Please try logging in.',
             )
           }
@@ -92,10 +88,10 @@ export default function RegisterPage() {
           router.push('/') // Redirect to home page
         }
       } else {
-        setGeneralError(result.error || 'Registration failed')
+        toast.error(result.error || 'Registration failed')
       }
     } catch (error: any) {
-      setGeneralError(error?.message || 'An error occurred during registration')
+      toast.error(error?.message || 'An error occurred during registration')
     } finally {
       setIsLoading(false)
     }
@@ -104,8 +100,8 @@ export default function RegisterPage() {
   const handleGoogleRegister = async () => {
     try {
       await loginWithGoogle()
-    } catch (error) {
-      setGeneralError('Google registration failed')
+    } catch (_error) {
+      toast.error('Google registration failed')
     }
   }
 
@@ -122,13 +118,6 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4">
-          {/* General Error Message */}
-          {generalError && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
-              {generalError}
-            </div>
-          )}
-
           {/* Name Fields */}
           <div>
             <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
