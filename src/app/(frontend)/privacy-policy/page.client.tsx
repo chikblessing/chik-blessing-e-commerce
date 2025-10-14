@@ -10,8 +10,8 @@ export default function PrivacyClient() {
       content: (
         <>
           <p className="mb-3">
-            This Privacy Policy describes how, Chik Blessing Global Limited, ("CBGL", "we", "us" or
-            "our") handles personal information that we collect through our digital properties that
+            This Privacy Policy describes how, Chik Blessing Global Limited, (&quot;CBGL&quot;, &quot;we&quot;, &quot;us&quot; or
+            &quot;our&quot;) handles personal information that we collect through our digital properties that
             link to this Privacy Policy, including our website (www., devices, social media, online
             and physical store location) and other activities as described in this Privacy Policy.
           </p>
@@ -321,7 +321,7 @@ export default function PrivacyClient() {
             The security of your personal information is important to us. We use technical and
             administrative measures to help protect your personal information from loss, theft,
             misuse, unauthorized access, disclosure, alteration, and/or destruction. We also follow
-            the Payment Card Industry Data Security Standard ("PCI-DSS") in handling your credit
+            the Payment Card Industry Data Security Standard (&quot;PCI-DSS&quot;) in handling your credit
             card information. However, security risk is inherent in all internet and information
             technologies.
           </p>

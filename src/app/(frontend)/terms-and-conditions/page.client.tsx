@@ -10,7 +10,7 @@ export default function TermsClient() {
       content: (
         <>
           <p className="mb-3">
-            Welcome to Chik Blessing Global Limited ("we", "our", "us"). These Terms & Conditions
+            Welcome to Chik Blessing Global Limited (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;). These Terms & Conditions
             govern your use of our website and the purchase of fast-moving consumer goods (FMCG)
             from us. By using our Platform or placing an order, you agree to comply with these
             Terms and all applicable Nigerian laws.
@@ -128,7 +128,7 @@ export default function TermsClient() {
           <p className="mb-3">If eligible, returns must be requested within 7 days of delivery.</p>
           <p className="mb-3">
             Refunds of payment for products for any other reason shall be subject to Chik Blessings
-            Global Limited's terms and conditions of sale.
+            Global Limited&apos;s terms and conditions of sale.
           </p>
           <p className="mb-3">
             Refunds will be processed within 7–14 business days via your original payment method or
