@@ -467,7 +467,7 @@ export const Orders: CollectionConfig = {
               await req.payload.update({
                 collection: 'users',
                 id: customerId,
-                data: { orderHistory } as any,
+                data: { orderHistory } as unknown,
               })
             }
           } catch (error) {
@@ -508,7 +508,7 @@ export const Orders: CollectionConfig = {
                         ...product.inventory,
                         stock: newStock,
                       },
-                    } as unknown,
+                    },
                   })
 
                   req.payload.logger.info({
