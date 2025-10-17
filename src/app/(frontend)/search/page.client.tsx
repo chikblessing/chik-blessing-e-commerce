@@ -95,7 +95,7 @@ const PageClient: React.FC = () => {
 
         {query && (
           <p className="text-gray-600 text-center mb-8">
-            Showing results for: <span className="font-semibold text-[#084710]">"{query}"</span>
+            Showing results for: <span className="font-semibold text-[#084710]">&apos;{query}&apos;</span>
           </p>
         )}
       </div>
@@ -135,7 +135,7 @@ const PageClient: React.FC = () => {
           </div>
           <h2 className="text-2xl font-semibold mb-2">No products found</h2>
           <p className="text-gray-600 mb-8">
-            We couldn't find any products matching "{query}". Try different keywords.
+            We couldn&apos;t find any products matching &apos;{query}&apos;. Try different keywords.
           </p>
           <button
             onClick={() => {
