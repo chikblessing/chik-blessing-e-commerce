@@ -201,12 +201,13 @@ export async function POST(request: NextRequest) {
 
       const resendData = JSON.parse(responseText)
       console.log('Email sent successfully:', resendData)
-    } catch (emailError: unknown) {
+    } catch (emailError: any) {
       console.error('Failed to send email:', emailError)
+      const errorMessage = emailError instanceof Error ? emailError.message : 'Unknown error'
       return NextResponse.json(
         {
           error: 'Failed to send verification email',
-          details: emailError.message || 'Unknown error',
+          details: errorMessage,
         },
         { status: 500 },
       )
