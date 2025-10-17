@@ -667,9 +667,12 @@ export interface Promotion {
 export interface Order {
   id: string;
   orderNumber: string;
+  /**
+   * Customer who placed this order
+   */
   customer?: (string | null) | User;
   /**
-   * Email for guest orders
+   * Email for guest orders (when customer is not logged in)
    */
   guestEmail?: string | null;
   items: {
@@ -686,15 +689,22 @@ export interface Order {
   shippingMethod?: ('standard' | 'express' | 'pickup') | null;
   tax?: number | null;
   total: number;
+  /**
+   * Shipping and delivery tracking information
+   */
   delivery?: {
     /**
      * Carrier tracking number
      */
     trackingNumber?: string | null;
     /**
-     * Shipping carrier (e.g., FedEx, USPS)
+     * Shipping carrier (e.g., FedEx, USPS, DHL)
      */
     carrier?: string | null;
+    /**
+     * Date when the order was shipped
+     */
+    shippedAt?: string | null;
     /**
      * Estimated date the customer should receive the order.
      */
@@ -734,7 +744,14 @@ export interface Order {
    * Additional payment details (e.g., bank transfer proof, cash receipt number)
    */
   paymentNotes?: string | null;
+  /**
+   * Date when payment was confirmed
+   */
   paidAt?: string | null;
+  /**
+   * Date when order was cancelled
+   */
+  cancelledAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1937,6 +1954,7 @@ export interface OrdersSelect<T extends boolean = true> {
     | {
         trackingNumber?: T;
         carrier?: T;
+        shippedAt?: T;
         expectedDeliveryDate?: T;
         actualDeliveryDate?: T;
       };
@@ -1969,6 +1987,7 @@ export interface OrdersSelect<T extends boolean = true> {
   transactionId?: T;
   paymentNotes?: T;
   paidAt?: T;
+  cancelledAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

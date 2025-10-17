@@ -76,11 +76,22 @@ export default async function ProductPage({ params: paramsPromise }: Args) {
     )
   }
 
-  // Get related products
-  const categoryIds =
-    (product as any).categories?.map((cat: any) => (typeof cat === 'string' ? cat : cat.id)) || []
+  // Get related products - prioritize manually selected, fallback to category-based
+  let relatedProducts: any[] = []
 
-  const relatedProducts = await queryRelatedProducts(categoryIds, product.id)
+  // First, check if product has manually selected related products
+  if ((product as any).relatedProducts && (product as any).relatedProducts.length > 0) {
+    relatedProducts = (product as any).relatedProducts
+      .filter((p: any) => typeof p === 'object' && p !== null && p.status === 'published')
+      .slice(0, 4) // Limit to 4 products
+  }
+
+  // If no manually selected products, fall back to category-based
+  if (relatedProducts.length === 0) {
+    const categoryIds =
+      (product as any).categories?.map((cat: any) => (typeof cat === 'string' ? cat : cat.id)) || []
+    relatedProducts = await queryRelatedProducts(categoryIds, product.id)
+  }
 
   // Get product reviews
   const reviews = await queryProductReviews(product.id)
