@@ -33,6 +33,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
   /* Storing the value in a useState to avoid hydration errors */
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const [theme, setTheme] = useState<string | null>(null)
   const { headerTheme, setHeaderTheme } = useHeaderTheme()
   const { totalItems: cartItems } = useCart()
@@ -99,12 +100,19 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
     setIsMobileMenuOpen(false)
   }
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      window.location.href = `/search?q=${encodeURIComponent(searchQuery.trim())}`
+    }
+  }
+
   const MobileDrawerContent = () => (
     <DrawerContent>
       <div className="mx-auto my-8">
         <Image src="/assets/cbgs-logo.png" alt="Cbgs-logo" width={80} height={45} priority />
       </div>
-      <div className="flex flex-col space-y-6 mx-auto my-8 px-6 pb-8">
+      <div className="flex flex-col space-y-6 my-8 px-6 pb-8">
         {/* User Info Section */}
         {user ? (
           <div className="pb-4 border-b border-gray-200">
@@ -285,14 +293,22 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
             )}
           </Link>
           <div>
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <Input
                 type="text"
-                placeholder="Search"
-                className="peer block w-[500px] rounded-xl border py-[9px] pl-10 text-lg"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="peer block w-[500px] rounded-xl border py-[18px] pl-10 pr-24 text-lg"
               />
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-[24px] w-[24px] -translate-y-1/2" />
-            </div>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-[24px] w-[24px] -translate-y-1/2 text-gray-400" />
+              <button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#084710] hover:bg-black text-white px-4 py-1.5 rounded-xl transition-colors duration-200 text-sm font-medium"
+              >
+                Search
+              </button>
+            </form>
           </div>
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/about" className={getLinkClasses('/about')}>

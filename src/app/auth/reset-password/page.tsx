@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import toast from 'react-hot-toast'
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()
@@ -51,6 +52,7 @@ function ResetPasswordForm() {
     setTimeout(() => {
       setIsLoading(false)
       setIsSuccess(true)
+      toast.success('Password reset successfully!')
     }, 2000)
   }
 

@@ -6,12 +6,52 @@ import type { CustomUser } from '../types/User'
 // Define reusable utility types for clarity
 type UserAccessArgs = AccessArgs<CustomUser>
 
-const snapshotProductData: CollectionBeforeChangeHook = async ({ data, req }) => {
-  // 1. Generate Order Number
-  data.orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 11).toUpperCase()}`
+const snapshotProductData: CollectionBeforeChangeHook = async ({
+  data,
+  req,
+  operation,
+  originalDoc,
+}) => {
+  // 1. Generate Order Number (only on create)
+  if (operation === 'create') {
+    data.orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 11).toUpperCase()}`
+  }
 
-  // 2. Iterate and Snapshot Product Details
-  if (data.items && Array.isArray(data.items)) {
+  // 2. Auto-set dates based on status changes
+  if (originalDoc) {
+    // Set shippedAt when status changes to 'shipped'
+    if (data.status === 'shipped' && originalDoc.status !== 'shipped') {
+      if (!data.delivery) data.delivery = {}
+      if (!data.delivery.shippedAt) {
+        data.delivery.shippedAt = new Date().toISOString()
+      }
+    }
+
+    // Set actualDeliveryDate when status changes to 'delivered'
+    if (data.status === 'delivered' && originalDoc.status !== 'delivered') {
+      if (!data.delivery) data.delivery = {}
+      if (!data.delivery.actualDeliveryDate) {
+        data.delivery.actualDeliveryDate = new Date().toISOString()
+      }
+    }
+
+    // Set cancelledAt when status changes to 'cancelled'
+    if (data.status === 'cancelled' && originalDoc.status !== 'cancelled') {
+      if (!data.cancelledAt) {
+        data.cancelledAt = new Date().toISOString()
+      }
+    }
+
+    // Set paidAt when payment status changes to 'paid'
+    if (data.paymentStatus === 'paid' && originalDoc.paymentStatus !== 'paid') {
+      if (!data.paidAt) {
+        data.paidAt = new Date().toISOString()
+      }
+    }
+  }
+
+  // 3. Iterate and Snapshot Product Details (only on create)
+  if (operation === 'create' && data.items && Array.isArray(data.items)) {
     for (let i = 0; i < data.items.length; i++) {
       const item = data.items[i]
       const productId = item.product // Assumes item.product holds the ID
@@ -89,13 +129,47 @@ export const Orders: CollectionConfig = {
       'guestEmail',
       'total',
       'status',
+      'createdAt',
       'delivery.expectedDeliveryDate',
     ],
+    listSearchableFields: [
+      'orderNumber',
+      'guestEmail',
+      'transactionId',
+      'paymentReference',
+      'shippingAddress.name',
+      'shippingAddress.email',
+      'shippingAddress.phone',
+    ],
+    // 🟢 Enable grouping and better organization
+    group: 'Commerce',
   },
   fields: [
     { name: 'orderNumber', type: 'text', required: true, unique: true, admin: { readOnly: true } },
-    { name: 'customer', type: 'relationship', relationTo: 'users', required: false, index: true },
-    { name: 'guestEmail', type: 'email', admin: { description: 'Email for guest orders' } },
+    {
+      name: 'customer',
+      type: 'relationship',
+      relationTo: 'users',
+      required: false,
+      index: true,
+      admin: {
+        description: 'Customer who placed this order',
+        // 🟢 Enable filtering by customer in admin UI
+      },
+      // 🟢 Enable filtering by nested user fields
+      filterOptions: ({ relationTo, data }) => {
+        // This allows filtering by user properties
+        return {}
+      },
+    },
+    {
+      name: 'guestEmail',
+      type: 'email',
+      admin: {
+        description: 'Email for guest orders (when customer is not logged in)',
+      },
+      index: true, // Enable searching by guest email
+    },
     {
       name: 'items',
       type: 'array',
@@ -176,26 +250,53 @@ export const Orders: CollectionConfig = {
       name: 'delivery',
       label: 'Delivery & Shipping',
       type: 'group',
+      admin: {
+        description: 'Shipping and delivery tracking information',
+      },
       fields: [
         {
           name: 'trackingNumber',
           type: 'text',
           admin: { description: 'Carrier tracking number' },
+          index: true, // Enable searching by tracking number
         },
         {
           name: 'carrier',
           type: 'text',
-          admin: { description: 'Shipping carrier (e.g., FedEx, USPS)' },
+          admin: { description: 'Shipping carrier (e.g., FedEx, USPS, DHL)' },
+        },
+        {
+          name: 'shippedAt',
+          type: 'date',
+          admin: {
+            description: 'Date when the order was shipped',
+            date: {
+              pickerAppearance: 'dayAndTime',
+            },
+          },
+          index: true, // Enable filtering by ship date
         },
         {
           name: 'expectedDeliveryDate',
           type: 'date',
-          admin: { description: 'Estimated date the customer should receive the order.' },
+          admin: {
+            description: 'Estimated date the customer should receive the order.',
+            date: {
+              pickerAppearance: 'dayOnly',
+            },
+          },
+          index: true, // Enable filtering by expected delivery
         },
         {
           name: 'actualDeliveryDate',
           type: 'date',
-          admin: { description: 'The confirmed date the order was delivered.' },
+          admin: {
+            description: 'The confirmed date the order was delivered.',
+            date: {
+              pickerAppearance: 'dayAndTime',
+            },
+          },
+          index: true, // Enable filtering by actual delivery
         },
       ],
     },
@@ -226,9 +327,24 @@ export const Orders: CollectionConfig = {
       name: 'shippingAddress',
       type: 'group',
       fields: [
-        { name: 'name', type: 'text', required: true },
-        { name: 'phone', type: 'text', required: true },
-        { name: 'email', type: 'email', required: true },
+        {
+          name: 'name',
+          type: 'text',
+          required: true,
+          index: true, // Enable searching by customer name
+        },
+        {
+          name: 'phone',
+          type: 'text',
+          required: true,
+          index: true, // Enable searching by phone
+        },
+        {
+          name: 'email',
+          type: 'email',
+          required: true,
+          index: true, // Enable searching by email
+        },
         { name: 'street', type: 'text', required: true },
         { name: 'city', type: 'text', required: true },
         { name: 'state', type: 'text', required: true },
@@ -301,13 +417,37 @@ export const Orders: CollectionConfig = {
       type: 'date',
       admin: {
         readOnly: true,
+        description: 'Date when payment was confirmed',
+        position: 'sidebar',
+        date: {
+          pickerAppearance: 'dayAndTime',
+          displayFormat: 'MMM d, yyyy h:mm a',
+        },
       },
+      index: true, // Enable filtering by payment date
+    },
+    // 🟢 NEW: Add a cancelled date field for tracking
+    {
+      name: 'cancelledAt',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        description: 'Date when order was cancelled',
+        position: 'sidebar',
+        condition: (data) => data.status === 'cancelled',
+        date: {
+          pickerAppearance: 'dayAndTime',
+          displayFormat: 'MMM d, yyyy h:mm a',
+        },
+      },
+      index: true,
     },
   ],
   hooks: {
     beforeChange: [snapshotProductData],
     afterChange: [
-      async ({ doc, req, operation }) => {
+      async ({ doc, req, operation, previousDoc }) => {
+        // Update user order history on create
         if (operation === 'create') {
           try {
             const customerId = typeof doc.customer === 'string' ? doc.customer : doc.customer.id
@@ -337,9 +477,58 @@ export const Orders: CollectionConfig = {
             })
           }
         }
+
+        // Reduce product stock when payment status changes to 'paid'
+        if (operation === 'update' && previousDoc) {
+          const paymentJustPaid =
+            doc.paymentStatus === 'paid' && previousDoc.paymentStatus !== 'paid'
+
+          if (paymentJustPaid && doc.items && Array.isArray(doc.items)) {
+            for (const item of doc.items) {
+              const productId = typeof item.product === 'string' ? item.product : item.product.id
+
+              try {
+                // Fetch current product
+                const product = await req.payload.findByID({
+                  collection: 'products',
+                  id: productId,
+                  depth: 0,
+                })
+
+                // Reduce stock if inventory tracking is enabled
+                if (product.inventory?.trackInventory) {
+                  const currentStock = product.inventory.stock || 0
+                  const newStock = Math.max(0, currentStock - item.quantity)
+
+                  await req.payload.update({
+                    collection: 'products',
+                    id: productId,
+                    data: {
+                      inventory: {
+                        ...product.inventory,
+                        stock: newStock,
+                      },
+                    },
+                  })
+
+                  req.payload.logger.info({
+                    msg: `Stock reduced for product ${productId}: ${currentStock} -> ${newStock}`,
+                    orderId: doc.id,
+                    orderNumber: doc.orderNumber,
+                  })
+                }
+              } catch (error) {
+                req.payload.logger.error({
+                  msg: `Error reducing stock for product ${productId}`,
+                  orderId: doc.id,
+                  error,
+                })
+              }
+            }
+          }
+        }
       },
     ],
-    // ... (afterChange hook for syncing user order history)
   },
   timestamps: true,
 }

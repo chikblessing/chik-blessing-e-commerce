@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/providers/Auth'
+import toast from 'react-hot-toast'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -23,9 +24,12 @@ export default function LoginPage() {
 
     try {
       await login(email, password)
+      toast.success('Login successful! Redirecting...')
       router.push('/') // Redirect to home page
     } catch (error: any) {
-      setError(error.message || 'Login failed')
+      const errorMessage = error.message || 'Login failed'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -35,7 +39,9 @@ export default function LoginPage() {
     try {
       await loginWithGoogle()
     } catch (error) {
-      setError('Google login failed')
+      const errorMessage = 'Google login failed'
+      setError(errorMessage)
+      toast.error(errorMessage)
     }
   }
 

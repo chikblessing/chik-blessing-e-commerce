@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
 
             <p style="color: #666666; font-size: 14px; line-height: 1.6; text-align: center; margin-top: 30px;">
               Need help? Contact our support team at 
-              <a href="mailto:support@chikblessingglobal.com" style="color: #084710; text-decoration: none;">support@chikblessingglobal.com</a>
+              <a href="mailto:info@chikblessing.com" style="color: #084710; text-decoration: none;"info@chikblessingglobal.com</a>
             </p>
           </div>
 
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
           Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: 'Chik Blessing Global Store <onboarding@resend.dev>', // Use Resend's test email or your verified domain
+          from: 'Chik Blessing Global Store info@chikblessing.com', // Use Resend's test email or your verified domain
           to: [email],
           subject: 'Email Verification Code - Chik Blessing Global Store',
           html: emailHTML,

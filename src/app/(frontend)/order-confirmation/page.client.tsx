@@ -63,7 +63,7 @@ export default function OrderConfirmationClient() {
 
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`/api/orders/${orderId}`)
+        const res = await fetch(`/api/orders/view/${orderId}`)
         if (!res.ok) {
           throw new Error('Failed to fetch order')
         }

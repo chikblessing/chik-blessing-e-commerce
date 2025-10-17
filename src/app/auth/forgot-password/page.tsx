@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import toast from 'react-hot-toast'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -17,6 +18,7 @@ export default function ForgotPasswordPage() {
     setTimeout(() => {
       setIsLoading(false)
       setIsEmailSent(true)
+      toast.success('Password reset email sent successfully!')
     }, 2000)
   }
 

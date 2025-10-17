@@ -1,15 +1,13 @@
-import React from 'react'
+import React, { Suspense } from 'react'
+import PageClient from './page.client'
 
-const Page: React.FC = () => {
+export default function Page() {
   return (
-    <div className="bg-gray-100 p-4 rounded-md shadow-sm">
-      <h2 className="text-xl font-bold mb-2">Dummy Component</h2>
-      <p className="text-gray-700">This is a placeholder component for demonstration purposes.</p>
-    </div>
+    <Suspense fallback={<div className="container mx-auto px-4 pt-[150px] pb-16">Loading...</div>}>
+      <PageClient />
+    </Suspense>
   )
 }
-
-export default Page
 // import type { Metadata } from 'next/types'
 
 // import { CollectionArchive } from '@/components/CollectionArchive'

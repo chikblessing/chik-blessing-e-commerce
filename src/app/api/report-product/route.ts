@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import config from '@/payload.config'
 
 export async function POST(req: NextRequest) {
   try {
-    const payload = await getPayload({ config: configPromise })
+    const payload = await getPayload({ config })
     const body = await req.json()
 
     const {
@@ -24,6 +24,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // Map reason text to value
+    const reasonMap: Record<string, string> = {
+      'Product description appears to be wrong or misleading information': 'misleading',
+      'Product description contains inappropriate content': 'inappropriate',
+      'Product appears to be counterfeit': 'counterfeit',
+      'Product may be prohibited or banned by law': 'prohibited',
+    }
+
+    const reasonValue = reasonMap[reason] || reason
+
     // Create product report
     const report = await payload.create({
       collection: 'product-reports',
@@ -31,7 +41,7 @@ export async function POST(req: NextRequest) {
         name,
         state,
         requesterType,
-        reason,
+        reason: reasonValue,
         additionalDetails: additionalDetails || '',
         email,
         phone,

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 
 const NIGERIAN_STATES = [
   'Abia',
@@ -44,10 +45,22 @@ const NIGERIAN_STATES = [
 ]
 
 const REPORT_REASONS = [
-  'Product description appears to be wrong or misleading information',
-  'Product description contains inappropriate content',
-  'Product appears to be counterfeit',
-  'Product may be prohibited or banned by law',
+  {
+    label: 'Product description appears to be wrong or misleading information',
+    value: 'misleading',
+  },
+  {
+    label: 'Product description contains inappropriate content',
+    value: 'inappropriate',
+  },
+  {
+    label: 'Product appears to be counterfeit',
+    value: 'counterfeit',
+  },
+  {
+    label: 'Product may be prohibited or banned by law',
+    value: 'prohibited',
+  },
 ]
 
 export default function ReportProductClient() {
@@ -92,7 +105,9 @@ export default function ReportProductClient() {
       !formData.phone ||
       !formData.productLink
     ) {
-      setError('Please fill in all required fields')
+      const errorMsg = 'Please fill in all required fields'
+      setError(errorMsg)
+      toast.error(errorMsg)
       setIsSubmitting(false)
       return
     }
@@ -100,7 +115,9 @@ export default function ReportProductClient() {
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid email address')
+      const errorMsg = 'Please enter a valid email address'
+      setError(errorMsg)
+      toast.error(errorMsg)
       setIsSubmitting(false)
       return
     }
@@ -121,6 +138,7 @@ export default function ReportProductClient() {
       }
 
       setSuccess(true)
+      toast.success('Report submitted successfully! Thank you for your feedback.')
       setFormData({
         name: '',
         state: '',
@@ -138,7 +156,9 @@ export default function ReportProductClient() {
         router.push('/')
       }, 3000)
     } catch (err: any) {
-      setError(err.message || 'Failed to submit report')
+      const errorMsg = err.message || 'Failed to submit report'
+      setError(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setIsSubmitting(false)
     }
@@ -258,9 +278,9 @@ export default function ReportProductClient() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#084710] focus:border-transparent"
               >
                 <option value="">Select a reason</option>
-                {REPORT_REASONS.map((reason, index) => (
-                  <option key={index} value={reason}>
-                    {reason}
+                {REPORT_REASONS.map((reason) => (
+                  <option key={reason.value} value={reason.value}>
+                    {reason.label}
                   </option>
                 ))}
               </select>
