@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       </head>
       <body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          
+
           <!-- Header -->
           <div style="background: linear-gradient(135deg, #084710 0%, #0a5c14 100%); padding: 40px 30px; text-align: center;">
             <div style="background-color: white; display: inline-block; padding: 15px 25px; border-radius: 10px; margin-bottom: 20px;">
@@ -75,9 +75,9 @@ export async function POST(request: NextRequest) {
             </div>
 
             <h3 style="color: #333333; font-size: 24px; margin-bottom: 20px; text-align: center;">Hello ${user.name || user.firstName || 'Valued Customer'}!</h3>
-            
+
             <p style="color: #666666; font-size: 16px; line-height: 1.6; margin-bottom: 30px; text-align: center;">
-              We received a request to verify your email address for your Chik Blessing Global Store account. 
+              We received a request to verify your email address for your Chik Blessing Global Store account.
               Please use the verification code below to complete the process.
             </p>
 
@@ -105,13 +105,13 @@ export async function POST(request: NextRequest) {
             <!-- Security Notice -->
             <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 20px 0;">
               <p style="color: #856404; font-size: 14px; margin: 0; line-height: 1.5;">
-                <strong> Security Notice:</strong> If you didn't request this verification code, please ignore this email. 
+                <strong> Security Notice:</strong> If you didn't request this verification code, please ignore this email.
                 Your account security is important to us.
               </p>
             </div>
 
             <p style="color: #666666; font-size: 14px; line-height: 1.6; text-align: center; margin-top: 30px;">
-              Need help? Contact our support team at 
+              Need help? Contact our support team at
               <a href="mailto:info@chikblessing.com" style="color: #084710; text-decoration: none;"info@chikblessingglobal.com</a>
             </p>
           </div>
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
           <div style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;">
             <p style="color: #084710; font-size: 18px; font-weight: bold; margin: 0 0 10px 0;">Chik Blessing Global Store</p>
             <p style="color: #666666; font-size: 14px; margin: 0 0 15px 0;">Your trusted partner for quality products</p>
-            
+
             <div style="margin: 20px 0;">
               <a href="#" style="display: inline-block; margin: 0 10px; color: #084710; text-decoration: none;">
                 <div style="width: 40px; height: 40px; background-color: #084710; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
 
             <p style="color: #999999; font-size: 12px; line-height: 1.4; margin: 20px 0 0 0;">
               © ${new Date().getFullYear()} Chik Blessing Global Store. All rights reserved.<br>
-              This email was sent to ${email}. If you no longer wish to receive these emails, 
+              This email was sent to ${email}. If you no longer wish to receive these emails,
               <a href="#" style="color: #084710;">unsubscribe here</a>.
             </p>
           </div>
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
           Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: 'Chik Blessing Global Store info@chikblessing.com', // Use Resend's test email or your verified domain
+          from: 'Chik Blessing Global Store <noreply@chikblessing.com>', // Your verified domain
           to: [email],
           subject: 'Email Verification Code - Chik Blessing Global Store',
           html: emailHTML,
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
 
       const resendData = JSON.parse(responseText)
       console.log('Email sent successfully:', resendData)
-    } catch (emailError: any) {
+    } catch (emailError: unknown) {
       console.error('Failed to send email:', emailError)
       return NextResponse.json(
         {
