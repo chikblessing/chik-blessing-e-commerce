@@ -75,7 +75,7 @@ function VerificationContent() {
       if (result.success) {
         toast.success('Email verified successfully! Redirecting...')
         setTimeout(() => {
-          router.push('/') // Redirect to home page after successful verification
+          router.push('/auth/login') // Redirect to login page after successful verification
         }, 2000)
       } else {
         toast.error(result.error || 'Invalid verification code. Please try again.')

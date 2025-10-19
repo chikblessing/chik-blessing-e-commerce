@@ -46,14 +46,41 @@ function ResetPasswordForm() {
 
     if (!validateForm()) return
 
+    if (!token) {
+      toast.error('Invalid or missing reset token')
+      return
+    }
+
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL || ''}/api/users/reset-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token: token,
+            password: formData.password,
+          }),
+        },
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to reset password')
+      }
+
       setIsSuccess(true)
       toast.success('Password reset successfully!')
-    }, 2000)
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to reset password')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (isSuccess) {

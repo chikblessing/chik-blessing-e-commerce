@@ -14,12 +14,28 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send reset email')
+      }
+
       setIsEmailSent(true)
       toast.success('Password reset email sent successfully!')
-    }, 2000)
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send reset email')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (isEmailSent) {
@@ -74,8 +90,8 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex justify-center my-8">
-                      <Image src="/assets/cbgs-logo.png" alt="Cbgs-logo" width={80} height={45} priority />
-                    </div>
+            <Image src="/assets/cbgs-logo.png" alt="Cbgs-logo" width={80} height={45} priority />
+          </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Forgot Password?</h2>
           <p className="text-gray-600">No worries, we&apos;ll send you reset instructions.</p>
         </div>

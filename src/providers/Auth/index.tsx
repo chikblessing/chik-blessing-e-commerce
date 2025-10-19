@@ -159,6 +159,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { success: true, needsVerification: false }
     } catch (error: any) {
       console.error('Registration error:', error)
+
+      // Handle duplicate email error
+      if (error.message && error.message.includes('email is already registered')) {
+        return {
+          success: false,
+          error: 'A user with this email is already registered. Please login instead.',
+        }
+      }
+
+      // Handle Payload validation errors
+      if (error.data?.errors) {
+        const emailError = error.data.errors.find((err: any) => err.path === 'email')
+        if (emailError) {
+          return {
+            success: false,
+            error: 'A user with this email is already registered. Please login instead.',
+          }
+        }
+      }
+
       return {
         success: false,
         error: error.message || 'Registration failed',

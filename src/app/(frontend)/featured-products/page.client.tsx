@@ -1,36 +1,80 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
-import ProductImage from '../../../../public/assets/image1.png'
+import React, { useState, useMemo } from 'react'
+import ProductCard from '@/components/ProductCard/ProductCard'
+import { Product, Category } from '@/payload-types'
+import { useCart } from '@/providers/Cart'
+import { useWishlist } from '@/providers/Wishlist'
+import toast from 'react-hot-toast'
 
-export default function ProductsClient() {
-  const [isInWishlist, setIsInWishlist] = useState<boolean>(false)
-  const [isClicked, setIsClicked] = useState<boolean>(false)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+interface ProductsClientProps {
+  initialProducts: Product[]
+  categories: Category[]
+}
+
+export default function ProductsClient({ initialProducts, categories }: ProductsClientProps) {
+  const { addItem: addToCart } = useCart()
+  const { addItem: addToWishlist, removeItem: removeFromWishlist } = useWishlist()
 
   // Filter states
   const [selectedBrands, setSelectedBrands] = useState<string[]>([])
-  const [priceRange, setPriceRange] = useState<[number, number]>([50, 200])
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000])
   const [selectedRatings, setSelectedRatings] = useState<number[]>([])
-  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
   // Price filter constants
   const MIN_PRICE = 0
-  const MAX_PRICE = 500
+  const MAX_PRICE = 1000000
 
-  // Simulate loading products
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 2000) // 2 second loading simulation
+  // Get unique brands from products
+  const brands = useMemo(() => {
+    const brandSet = new Set(initialProducts.map((p) => p.brand).filter(Boolean))
+    return Array.from(brandSet).sort()
+  }, [initialProducts])
 
-    return () => clearTimeout(timer)
-  }, [])
+  // Filter products
+  const filteredProducts = useMemo(() => {
+    return initialProducts.filter((product) => {
+      // Brand filter
+      if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) {
+        return false
+      }
+
+      // Price filter
+      const price = product.salePrice ?? product.price
+      if (price < priceRange[0] || price > priceRange[1]) {
+        return false
+      }
+
+      // Rating filter
+      if (selectedRatings.length > 0) {
+        const productRating = Math.round(product.rating?.average || 0)
+        const meetsRating = selectedRatings.some((rating) => productRating >= rating)
+        if (!meetsRating) return false
+      }
+
+      // Category filter
+      if (selectedCategories.length > 0) {
+        const productCategories = Array.isArray(product.categories)
+          ? product.categories.map((cat) => (typeof cat === 'string' ? cat : cat.id))
+          : []
+        const hasCategory = selectedCategories.some((catId) => productCategories.includes(catId))
+        if (!hasCategory) return false
+      }
+
+      return true
+    })
+  }, [initialProducts, selectedBrands, priceRange, selectedRatings, selectedCategories])
 
   const handleBrandChange = (brand: string) => {
     setSelectedBrands((prev) =>
       prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand],
+    )
+  }
+
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId) ? prev.filter((c) => c !== categoryId) : [...prev, categoryId],
     )
   }
 
@@ -42,7 +86,6 @@ export default function ProductsClient() {
 
   const handlePriceChange = (index: 0 | 1, value: string) => {
     const numValue = value === '' ? (index === 0 ? MIN_PRICE : MAX_PRICE) : parseInt(value)
-
     if (isNaN(numValue)) return
 
     const clampedValue = Math.max(MIN_PRICE, Math.min(MAX_PRICE, numValue))
@@ -51,7 +94,6 @@ export default function ProductsClient() {
       const newRange: [number, number] = [...prev]
       newRange[index] = clampedValue
 
-      // Ensure min doesn't exceed max and vice versa
       if (index === 0 && clampedValue > prev[1]) {
         newRange[1] = clampedValue
       } else if (index === 1 && clampedValue < prev[0]) {
@@ -62,31 +104,41 @@ export default function ProductsClient() {
     })
   }
 
-  const handleWishlistClick = () => {
-    setIsInWishlist(!isInWishlist)
-    setIsClicked(true)
-
-    // Reset click animation after 200ms
-    setTimeout(() => {
-      setIsClicked(false)
-    }, 200)
+  const clearFilters = () => {
+    setSelectedBrands([])
+    setPriceRange([MIN_PRICE, MAX_PRICE])
+    setSelectedRatings([])
+    setSelectedCategories([])
   }
 
-  function StarRating({ rating = 0 }) {
-    return (
-      <div className="flex  mb-2">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <svg
-            key={star}
-            className={`h-5 w-5 ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <polygon points="10,1 12.59,7.36 19.51,7.64 14,12.26 15.82,19.02 10,15.27 4.18,19.02 6,12.26 0.49,7.64 7.41,7.36" />
-          </svg>
-        ))}
-      </div>
-    )
+  const handleWishlistToggle = async (productId: string, currentlyInWishlist: boolean) => {
+    const product = initialProducts.find((p) => p.id === productId)
+    if (!product) return
+
+    try {
+      if (currentlyInWishlist) {
+        await removeFromWishlist(productId)
+        toast.success('Removed from wishlist')
+      } else {
+        await addToWishlist(product)
+        toast.success('Added to wishlist')
+      }
+    } catch (_error) {
+      toast.error('Failed to update wishlist')
+    }
+  }
+
+  const handleAddToCart = async (productId: string) => {
+    const product = initialProducts.find((p) => p.id === productId)
+    if (!product) return
+
+    try {
+      const variantSku = product.inventory?.sku || product.id
+      await addToCart(product, variantSku, 1)
+      toast.success('Added to cart')
+    } catch (_error) {
+      toast.error('Failed to add to cart')
+    }
   }
 
   const FilterStars = ({ count }: { count: number }) => (
@@ -104,398 +156,161 @@ export default function ProductsClient() {
     </div>
   )
 
-  const ProductSkeleton = () => (
-    <div className="border border-[#084710] rounded-xl bg-white p-3 animate-pulse">
-      <div className="relative mb-6">
-        <div className="w-full h-60 bg-gray-200 rounded-2xl"></div>
-        <div className="absolute top-2 right-2 bg-gray-200 p-2 rounded-full w-10 h-10"></div>
-      </div>
-
-      <div>
-        <div className="h-6 bg-gray-200 rounded mb-2 w-3/4"></div>
-        <div className="flex mb-2">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <div key={star} className="h-5 w-5 bg-gray-200 rounded mr-1"></div>
-          ))}
-        </div>
-        <div className="h-6 bg-gray-200 rounded mb-2 w-1/2"></div>
-      </div>
-
-      <div className="w-full h-12 bg-gray-200 rounded-xl mt-4"></div>
-    </div>
-  )
   return (
-    <>
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1"></div>
-          <div className="lg:col-span-2">
-            <h3 className="text-3xl font-bold my-6">Featured Products</h3>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/*filter components */}
-          <div className="lg:col-span-1">
-            <div className="bg-white border border-[#084710] rounded-xl p-6 sticky top-4">
-              {/* Filter Header */}
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold">Filters</h3>
-                <button className="text-gray-400">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    width="24"
-                    height="24"
-                    fill="currentColor"
-                  >
-                    <path d="M21 18V21H19V18H17V16H23V18H21ZM5 18V21H3V18H1V16H7V18H5ZM11 6V3H13V6H15V8H9V6H11ZM11 10H13V21H11V10ZM3 14V3H5V14H3ZM19 14V3H21V14H19Z"></path>
-                  </svg>
-                </button>
-              </div>
-
-              {/* Category Breadcrumb */}
-              <div className="mb-6 text-sm text-gray-600">
-                <div className="mb-1">Grocery</div>
-                <div className="font-semibold text-gray-900 mb-1">Dried Beans, Grains & Rice</div>
-                <div>Rice & Grains</div>
-              </div>
-
-              {/* Brand Filter */}
-              <div className="mb-6">
+    <div className="container mx-auto px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Filter Sidebar */}
+        <div className="lg:col-span-1">
+          <div className="bg-white border border-[#084710] rounded-xl p-6 sticky top-24">
+            {/* Filter Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold">Filters</h3>
+              {(selectedBrands.length > 0 ||
+                selectedRatings.length > 0 ||
+                selectedCategories.length > 0 ||
+                priceRange[0] !== MIN_PRICE ||
+                priceRange[1] !== MAX_PRICE) && (
                 <button
-                  className="flex items-center justify-between w-full py-3 font-semibold text-left"
-                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  onClick={clearFilters}
+                  className="text-sm text-red-600 hover:text-red-700 font-medium"
                 >
-                  <span>BRAND</span>
-                  <svg
-                    className={`w-4 h-4 transform transition-transform ${isFilterOpen ? 'rotate-180' : ''}`}
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  Clear All
                 </button>
+              )}
+            </div>
 
-                <div className="space-y-3 mt-3">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 text-[#084710] border-gray-300 rounded focus:ring-green-500"
-                      checked={selectedBrands.includes('Big Bull')}
-                      onChange={() => handleBrandChange('Big Bull')}
-                    />
-                    <span className="ml-3 text-gray-600">Big Bull</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 text-[#084710] border-gray-300 rounded focus:ring-green-500"
-                      checked={selectedBrands.includes('Patriot')}
-                      onChange={() => handleBrandChange('Patriot')}
-                    />
-                    <span className="ml-3 text-gray-600">Patriot</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Price Filter */}
+            {/* Category Filter */}
+            {categories.length > 0 && (
               <div className="mb-6">
-                <button className="flex items-center justify-between w-full py-3 font-semibold text-left">
-                  <span>PRICE</span>
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-
-                <div className="mt-4">
-                  <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                    <span>${priceRange[0]}</span>
-                    <span>${priceRange[1]}</span>
-                  </div>
-
-                  <div className="relative">
-                    <div className="h-2 bg-gray-200 rounded-full">
-                      <div
-                        className="h-2 bg-[#084710] rounded-full"
-                        style={{
-                          marginLeft: `${(priceRange[0] / MAX_PRICE) * 100}%`,
-                          width: `${((priceRange[1] - priceRange[0]) / MAX_PRICE) * 100}%`,
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div className="w-full flex gap-4 mt-4">
-                    <input
-                      type="number"
-                      placeholder={`$${MIN_PRICE}`}
-                      min={MIN_PRICE}
-                      max={MAX_PRICE}
-                      className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#084710]"
-                      value={priceRange[0]}
-                      onChange={(e) => handlePriceChange(0, e.target.value)}
-                    />
-                    <input
-                      type="number"
-                      placeholder={`$${MAX_PRICE}`}
-                      min={MIN_PRICE}
-                      max={MAX_PRICE}
-                      className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#084710]"
-                      value={priceRange[1]}
-                      onChange={(e) => handlePriceChange(1, e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Product Rating Filter */}
-              <div className="mb-6">
-                <button className="flex items-center justify-between w-full py-3 font-semibold text-left">
-                  <span>PRODUCT RATING</span>
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-
-                <div className="space-y-3 mt-3">
-                  {[4, 3, 2, 1].map((rating) => (
-                    <label key={rating} className="flex items-center">
+                <h4 className="font-semibold mb-3">CATEGORIES</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {categories.map((category) => (
+                    <label key={category.id} className="flex items-center">
                       <input
                         type="checkbox"
                         className="w-4 h-4 text-[#084710] border-gray-300 rounded focus:ring-green-500"
-                        checked={selectedRatings.includes(rating)}
-                        onChange={() => handleRatingChange(rating)}
+                        checked={selectedCategories.includes(category.id)}
+                        onChange={() => handleCategoryChange(category.id)}
                       />
-                      <div className="ml-3 flex items-center gap-2">
-                        <FilterStars count={rating} />
-                        <span className="text-sm text-gray-600">& Above</span>
-                      </div>
+                      <span className="ml-3 text-gray-600 text-sm">{category.title}</span>
                     </label>
                   ))}
                 </div>
               </div>
+            )}
 
-              {/* Apply Filter Button */}
-              <button className="w-full bg-[#084710] text-white py-3 px-4 rounded-xl hover:bg-black transition-colors font-medium">
-                Apply Filter
-              </button>
+            {/* Brand Filter */}
+            {brands.length > 0 && (
+              <div className="mb-6">
+                <h4 className="font-semibold mb-3">BRAND</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {brands.map((brand) => (
+                    <label key={brand} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 text-[#084710] border-gray-300 rounded focus:ring-green-500"
+                        checked={selectedBrands.includes(brand)}
+                        onChange={() => handleBrandChange(brand)}
+                      />
+                      <span className="ml-3 text-gray-600 text-sm">{brand}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Price Filter */}
+            <div className="mb-6">
+              <h4 className="font-semibold mb-3">PRICE</h4>
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                  <span>₦{priceRange[0].toLocaleString()}</span>
+                  <span>₦{priceRange[1].toLocaleString()}</span>
+                </div>
+
+                <div className="w-full flex gap-4 mt-4">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    min={MIN_PRICE}
+                    max={MAX_PRICE}
+                    className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#084710]"
+                    value={priceRange[0]}
+                    onChange={(e) => handlePriceChange(0, e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    min={MIN_PRICE}
+                    max={MAX_PRICE}
+                    className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#084710]"
+                    value={priceRange[1]}
+                    onChange={(e) => handlePriceChange(1, e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-          {/*filter components end */}
-          <div className="lg:col-span-2">
-            {/* <h3 className="text-3xl font-semibold my-6">Featured Products</h3> */}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {isLoading ? (
-                // Show skeleton loaders while loading
-                <>
-                  <ProductSkeleton />
-                  <ProductSkeleton />
-                  <ProductSkeleton />
-                  <ProductSkeleton />
-                  <ProductSkeleton />
-                  <ProductSkeleton />
-                </>
-              ) : (
-                // Show actual products after loading
-                <>
-                  {/* Product Card 1 */}
-                  <div className="border border-[#084710] rounded-xl bg-white p-3">
-                    <div className="relative mb-6">
-                      <Image
-                        src={ProductImage}
-                        alt="product-img"
-                        className="w-full h-60 object-cover rounded-2xl"
-                        width={300}
-                        height={400}
-                      />
-                      <button
-                        onClick={handleWishlistClick}
-                        className={`absolute top-2 right-2 bg-white hover:bg-gray-50 p-2 rounded-full shadow-md transition-all duration-300 group 
-                                 ${isClicked ? 'scale-125' : 'scale-100'} 
-                                 hover:scale-110 active:scale-95`}
-                        title={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-                      >
-                        <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-black text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                          {isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-                          <div className="absolute top-full right-2 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black"></div>
-                        </div>
-
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          width="20"
-                          height="20"
-                          className={`transition-all duration-300 ${
-                            isInWishlist
-                              ? 'fill-red-500 text-red-500'
-                              : 'fill-none text-gray-400 hover:text-red-500'
-                          }`}
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
-                      </button>
+            {/* Product Rating Filter */}
+            <div className="mb-6">
+              <h4 className="font-semibold mb-3">PRODUCT RATING</h4>
+              <div className="space-y-2">
+                {[4, 3, 2, 1].map((rating) => (
+                  <label key={rating} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 text-[#084710] border-gray-300 rounded focus:ring-green-500"
+                      checked={selectedRatings.includes(rating)}
+                      onChange={() => handleRatingChange(rating)}
+                    />
+                    <div className="ml-3 flex items-center gap-2">
+                      <FilterStars count={rating} />
+                      <span className="text-sm text-gray-600">& Above</span>
                     </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold my-2">Premium Rice</h3>
-                      <StarRating rating={4} />
-                      <p className="text-xl font-semibold my-2">₦15,000</p>
-                    </div>
-
-                    <button className="w-full flex justify-center gap-3 items-center py-3 px-8 bg-[#084710] hover:bg-black rounded-xl transition-colors duration-200">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        width="24"
-                        height="24"
-                        fill="rgba(255,255,255,1)"
-                      >
-                        <path d="M4.00436 6.41686L0.761719 3.17422L2.17593 1.76001L5.41857 5.00265H20.6603C21.2126 5.00265 21.6603 5.45037 21.6603 6.00265C21.6603 6.09997 21.6461 6.19678 21.6182 6.29L19.2182 14.29C19.0913 14.713 18.7019 15.0027 18.2603 15.0027H6.00436V17.0027H17.0044V19.0027H5.00436C4.45207 19.0027 4.00436 18.5549 4.00436 18.0027V6.41686ZM6.00436 7.00265V13.0027H17.5163L19.3163 7.00265H6.00436ZM5.50436 23.0027C4.67593 23.0027 4.00436 22.3311 4.00436 21.5027C4.00436 20.6742 4.67593 20.0027 5.50436 20.0027C6.33279 20.0027 7.00436 20.6742 7.00436 21.5027C7.00436 22.3311 6.33279 23.0027 5.50436 23.0027ZM17.5044 23.0027C16.6759 23.0027 16.0044 22.3311 16.0044 21.5027C16.0044 20.6742 16.6759 20.0027 17.5044 20.0027C18.3328 20.0027 19.0044 20.6742 19.0044 21.5027C19.0044 22.3311 18.3328 23.0027 17.5044 23.0027Z"></path>
-                      </svg>
-                      <span className="text-white text-lg">Add to Cart</span>
-                    </button>
-                  </div>
-
-                  {/* Product Card 2 */}
-                  <div className="border border-[#084710] rounded-xl bg-white p-3">
-                    <div className="relative mb-6">
-                      <Image
-                        src={ProductImage}
-                        alt="product-img"
-                        className="w-full h-60 object-cover rounded-2xl"
-                        width={300}
-                        height={400}
-                      />
-                      <button
-                        onClick={handleWishlistClick}
-                        className={`absolute top-2 right-2 bg-white hover:bg-gray-50 p-2 rounded-full shadow-md transition-all duration-300 group 
-                                 ${isClicked ? 'scale-125' : 'scale-100'} 
-                                 hover:scale-110 active:scale-95`}
-                        title={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-                      >
-                        <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-black text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                          {isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-                          <div className="absolute top-full right-2 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black"></div>
-                        </div>
-
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          width="20"
-                          height="20"
-                          className={`transition-all duration-300 ${
-                            isInWishlist
-                              ? 'fill-red-500 text-red-500'
-                              : 'fill-none text-gray-400 hover:text-red-500'
-                          }`}
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
-                      </button>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold my-2">Organic Beans</h3>
-                      <StarRating rating={5} />
-                      <p className="text-xl font-semibold my-2">₦25,000</p>
-                    </div>
-
-                    <button className="w-full flex justify-center gap-3 items-center py-3 px-8 bg-[#084710] hover:bg-black rounded-xl transition-colors duration-200">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        width="24"
-                        height="24"
-                        fill="rgba(255,255,255,1)"
-                      >
-                        <path d="M4.00436 6.41686L0.761719 3.17422L2.17593 1.76001L5.41857 5.00265H20.6603C21.2126 5.00265 21.6603 5.45037 21.6603 6.00265C21.6603 6.09997 21.6461 6.19678 21.6182 6.29L19.2182 14.29C19.0913 14.713 18.7019 15.0027 18.2603 15.0027H6.00436V17.0027H17.0044V19.0027H5.00436C4.45207 19.0027 4.00436 18.5549 4.00436 18.0027V6.41686ZM6.00436 7.00265V13.0027H17.5163L19.3163 7.00265H6.00436ZM5.50436 23.0027C4.67593 23.0027 4.00436 22.3311 4.00436 21.5027C4.00436 20.6742 4.67593 20.0027 5.50436 20.0027C6.33279 20.0027 7.00436 20.6742 7.00436 21.5027C7.00436 22.3311 6.33279 23.0027 5.50436 23.0027ZM17.5044 23.0027C16.6759 23.0027 16.0044 22.3311 16.0044 21.5027C16.0044 20.6742 16.6759 20.0027 17.5044 20.0027C18.3328 20.0027 19.0044 20.6742 19.0044 21.5027C19.0044 22.3311 18.3328 23.0027 17.5044 23.0027Z"></path>
-                      </svg>
-                      <span className="text-white text-lg">Add to Cart</span>
-                    </button>
-                  </div>
-
-                  {/* Product Card 3 */}
-                  <div className="border border-[#084710] rounded-xl bg-white p-3">
-                    <div className="relative mb-6">
-                      <Image
-                        src={ProductImage}
-                        alt="product-img"
-                        className="w-full h-60 object-cover rounded-2xl"
-                        width={300}
-                        height={400}
-                      />
-                      <button
-                        onClick={handleWishlistClick}
-                        className={`absolute top-2 right-2 bg-white hover:bg-gray-50 p-2 rounded-full shadow-md transition-all duration-300 group 
-                                 ${isClicked ? 'scale-125' : 'scale-100'} 
-                                 hover:scale-110 active:scale-95`}
-                        title={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-                      >
-                        <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-black text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                          {isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-                          <div className="absolute top-full right-2 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black"></div>
-                        </div>
-
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          width="20"
-                          height="20"
-                          className={`transition-all duration-300 ${
-                            isInWishlist
-                              ? 'fill-red-500 text-red-500'
-                              : 'fill-none text-gray-400 hover:text-red-500'
-                          }`}
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
-                      </button>
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-semibold my-2">Mixed Grains</h3>
-                      <StarRating rating={3} />
-                      <p className="text-xl font-semibold my-2">₦18,500</p>
-                    </div>
-
-                    <button className="w-full flex justify-center gap-3 items-center py-3 px-8 bg-[#084710] hover:bg-black rounded-xl transition-colors duration-200">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        width="24"
-                        height="24"
-                        fill="rgba(255,255,255,1)"
-                      >
-                        <path d="M4.00436 6.41686L0.761719 3.17422L2.17593 1.76001L5.41857 5.00265H20.6603C21.2126 5.00265 21.6603 5.45037 21.6603 6.00265C21.6603 6.09997 21.6461 6.19678 21.6182 6.29L19.2182 14.29C19.0913 14.713 18.7019 15.0027 18.2603 15.0027H6.00436V17.0027H17.0044V19.0027H5.00436C4.45207 19.0027 4.00436 18.5549 4.00436 18.0027V6.41686ZM6.00436 7.00265V13.0027H17.5163L19.3163 7.00265H6.00436ZM5.50436 23.0027C4.67593 23.0027 4.00436 22.3311 4.00436 21.5027C4.00436 20.6742 4.67593 20.0027 5.50436 20.0027C6.33279 20.0027 7.00436 20.6742 7.00436 21.5027C7.00436 22.3311 6.33279 23.0027 5.50436 23.0027ZM17.5044 23.0027C16.6759 23.0027 16.0044 22.3311 16.0044 21.5027C16.0044 20.6742 16.6759 20.0027 17.5044 20.0027C18.3328 20.0027 19.0044 20.6742 19.0044 21.5027C19.0044 22.3311 18.3328 23.0027 17.5044 23.0027Z"></path>
-                      </svg>
-                      <span className="text-white text-lg">Add to Cart</span>
-                    </button>
-                  </div>
-                </>
-              )}
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Products Grid */}
+        <div className="lg:col-span-3">
+          <div className="mb-6">
+            <h3 className="text-3xl font-bold">Featured Products</h3>
+            <p className="text-gray-600 mt-2">
+              Showing {filteredProducts.length} of {initialProducts.length} products
+            </p>
+          </div>
+
+          {filteredProducts.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-2">No products found</h3>
+              <p className="text-gray-600 mb-6">Try adjusting your filters to see more products</p>
+              <button
+                onClick={clearFilters}
+                className="bg-[#084710] text-white px-6 py-3 rounded-lg hover:bg-black transition-colors"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product as any}
+                  onWishlistToggle={(productId, isInWishlist) =>
+                    handleWishlistToggle(productId, isInWishlist)
+                  }
+                  onAddToCart={handleAddToCart}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   )
 }
