@@ -4,6 +4,7 @@ import React, { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
+import Image from 'next/image'
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()
@@ -162,9 +163,9 @@ function ResetPasswordForm() {
       <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-600 to-green-800 rounded-full flex items-center justify-center mb-4">
-            <span className="text-white font-bold text-xl">CBCS</span>
-          </div>
+         <div className="flex justify-center my-8">
+                     <Image src="/assets/cbgs-logo.png" alt="Cbgs-logo" width={80} height={45} priority />
+                   </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Set New Password</h2>
           <p className="text-gray-600">Enter your new password below.</p>
         </div>

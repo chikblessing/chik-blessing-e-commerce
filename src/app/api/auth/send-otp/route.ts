@@ -58,8 +58,10 @@ export async function POST(request: NextRequest) {
 
           <!-- Header -->
           <div style="background: linear-gradient(135deg, #084710 0%, #0a5c14 100%); padding: 40px 30px; text-align: center;">
-            <div style="background-color: white; display: inline-block; padding: 15px 25px; border-radius: 10px; margin-bottom: 20px;">
-              <h1 style="color: #084710; margin: 0; font-size: 24px; font-weight: bold;">CBGS</h1>
+            <div style="display: inline-block; padding: 15px 25px; border-radius: 10px; margin-bottom: 20px;">
+              
+                                   <image src="/assets/cbgs-logo.png" alt="Cbgs-logo" width={80} height={45} priority />
+                                 
             </div>
             <h2 style="color: white; margin: 0; font-size: 28px; font-weight: 300;">Email Verification</h2>
           </div>
@@ -161,9 +163,6 @@ export async function POST(request: NextRequest) {
 
     // Send email using Resend API directly
     try {
-      console.log('Attempting to send email to:', email)
-      console.log('Resend API Key exists:', !!process.env.RESEND_API_KEY)
-
       const resendResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -201,7 +200,7 @@ export async function POST(request: NextRequest) {
 
       const resendData = JSON.parse(responseText)
       console.log('Email sent successfully:', resendData)
-    } catch (emailError: any) {
+    } catch (emailError: unknown) {
       console.error('Failed to send email:', emailError)
       const errorMessage = emailError instanceof Error ? emailError.message : 'Unknown error'
       return NextResponse.json(
