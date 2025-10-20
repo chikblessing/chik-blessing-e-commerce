@@ -71,9 +71,18 @@ export default buildConfig({
     url: process.env.DATABASE_URI || '',
   }),
   collections: [
-    Pages, Posts, Media, Categories, Products,
-    Promotions, Orders, Reviews, ShippingZones,
-    ProductReports, ContactSubmissions, Users,
+    Pages,
+    Posts,
+    Media,
+    Categories,
+    Products,
+    Promotions,
+    Orders,
+    Reviews,
+    ShippingZones,
+    ProductReports,
+    ContactSubmissions,
+    Users,
   ],
   globals: [Header, Footer],
   plugins: [
@@ -135,22 +144,22 @@ Collections are Payload's data models. Each collection defines a database table/
   fields: [
     // Basic Info
     'title', 'slug', 'shortDescription', 'description',
-    
+
     // Pricing
     'price', 'salePrice',
-    
+
     // Media
     'images' (array), 'gallery' (array),
-    
+
     // Organization
     'categories' (relationship), 'brand', 'status',
-    
+
     // Inventory
     'inventory' (group): {
       stock, lowStockThreshold, sku, trackInventory,
       weight, dimensions
     },
-    
+
     // Additional
     'specifications' (array), 'rating' (group),
     'promotions', 'relatedProducts', 'tags', 'seo'
@@ -161,6 +170,7 @@ Collections are Payload's data models. Each collection defines a database table/
 #### Key Features
 
 **1. Automatic Slug Generation**
+
 ```typescript
 hooks: {
   beforeChange: [
@@ -172,12 +182,13 @@ hooks: {
           .replace(/(^-|-$)/g, '')
       }
       return data
-    }
+    },
   ]
 }
 ```
 
 **2. Auto Status Update**
+
 ```typescript
 if (data.inventory?.stock === 0) {
   data.status = 'out-of-stock'
@@ -185,11 +196,13 @@ if (data.inventory?.stock === 0) {
 ```
 
 **3. Category Count Sync**
+
 - After product create/update/delete
 - Updates `productsCount` on related categories
 - Handles multiple categories per product
 
 **4. Rating System**
+
 - Read-only field calculated from reviews
 - Includes average, count, and breakdown (1-5 stars)
 
@@ -221,29 +234,29 @@ if (data.inventory?.stock === 0) {
     'orderNumber',  // Auto-generated
     'customer' (relationship to users),
     'guestEmail',   // For non-logged-in users
-    
+
     // Order Items
     'items' (array): {
       product, productTitle, productImage,
       quantity, price, sku
     },
-    
+
     // Pricing
     'subtotal', 'shipping', 'tax', 'total',
-    
+
     // Shipping
     'shippingMethod', 'shippingAddress', 'billingAddress',
-    
+
     // Delivery Tracking
     'delivery' (group): {
       trackingNumber, carrier,
       expectedDeliveryDate, actualDeliveryDate
     },
-    
+
     // Payment
     'paymentMethod', 'paymentStatus', 'paymentReference',
     'transactionId', 'paymentNotes', 'paidAt',
-    
+
     // Status
     'status': pending | processing | shipped | delivered | cancelled
   ]
@@ -253,18 +266,19 @@ if (data.inventory?.stock === 0) {
 #### Key Features
 
 **1. Product Data Snapshot**
+
 ```typescript
 const snapshotProductData: CollectionBeforeChangeHook = async ({ data, req }) => {
   // Generate unique order number
   data.orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 11).toUpperCase()}`
-  
+
   // Snapshot product details (title, image) at time of order
   // This preserves product info even if product is later deleted/modified
   for (let item of data.items) {
     const productDoc = await req.payload.findByID({
       collection: 'products',
       id: item.product,
-      depth: 1
+      depth: 1,
     })
     item.productTitle = productDoc.title
     item.productImage = productDoc.images?.[0]?.image?.id
@@ -273,6 +287,7 @@ const snapshotProductData: CollectionBeforeChangeHook = async ({ data, req }) =>
 ```
 
 **2. Access Control**
+
 ```typescript
 access: {
   read: ({ req: { user } }) => {
@@ -284,6 +299,7 @@ access: {
 ```
 
 **3. Order History Sync**
+
 - After order creation, adds order to user's `orderHistory`
 - Maintains bidirectional relationship
 
@@ -303,13 +319,13 @@ access: {
     'name', 'firstName', 'lastName', 'avatar',
     'role': admin | customer,
     'phone', 'gender', 'dateOfBirth',
-    
+
     // Customer-only fields
     'addresses' (array),
     'cart' (array),
     'wishlist' (array),
     'orderHistory' (array),
-    
+
     // OTP Verification
     'verificationOTP', 'otpExpiry'
   ]
@@ -319,6 +335,7 @@ access: {
 #### Key Features
 
 **1. Role-Based Access**
+
 ```typescript
 access: {
   admin: ({ req: { user } }) => user?.role === 'admin',
@@ -331,6 +348,7 @@ access: {
 ```
 
 **2. Conditional Fields**
+
 ```typescript
 {
   name: 'cart',
@@ -341,6 +359,7 @@ access: {
 ```
 
 **3. Email Verification**
+
 ```typescript
 auth: {
   verify: {
@@ -354,13 +373,14 @@ auth: {
 ```
 
 **4. Cart Structure**
+
 ```typescript
 cart: [
   {
-    product: (relationship),
+    product: relationship,
     quantity: number,
-    addedAt: date
-  }
+    addedAt: date,
+  },
 ]
 ```
 
@@ -390,6 +410,7 @@ cart: [
 #### Key Features
 
 **1. Verified Purchase Check**
+
 ```typescript
 beforeChange: [
   async ({ data, req, operation }) => {
@@ -400,41 +421,39 @@ beforeChange: [
           and: [
             { customer: { equals: data.customer } },
             { status: { equals: 'delivered' } },
-            { 'items.product': { equals: data.product } }
-          ]
-        }
+            { 'items.product': { equals: data.product } },
+          ],
+        },
       })
       data.isVerifiedPurchase = orders.totalDocs > 0
     }
-  }
+  },
 ]
 ```
 
 **2. Product Rating Update**
+
 ```typescript
 async function updateProductRating(payload, productId) {
   const reviews = await payload.find({
     collection: 'reviews',
     where: {
-      and: [
-        { product: { equals: productId } },
-        { status: { equals: 'approved' } }
-      ]
-    }
+      and: [{ product: { equals: productId } }, { status: { equals: 'approved' } }],
+    },
   })
-  
+
   const average = reviews.docs.reduce((sum, r) => sum + r.rating, 0) / reviews.totalDocs
-  
+
   const breakdown = {
-    fiveStars: reviews.docs.filter(r => r.rating === 5).length,
-    fourStars: reviews.docs.filter(r => r.rating === 4).length,
+    fiveStars: reviews.docs.filter((r) => r.rating === 5).length,
+    fourStars: reviews.docs.filter((r) => r.rating === 4).length,
     // ... etc
   }
-  
+
   await payload.update({
     collection: 'products',
     id: productId,
-    data: { rating: { average, count: reviews.totalDocs, breakdown } }
+    data: { rating: { average, count: reviews.totalDocs, breakdown } },
   })
 }
 ```
@@ -463,10 +482,12 @@ async function updateProductRating(payload, productId) {
 #### Key Features
 
 **1. Hierarchical Structure**
+
 - Categories can have parent categories
 - Enables multi-level navigation (e.g., Electronics > Laptops > Gaming Laptops)
 
 **2. Auto Product Count**
+
 - Updated by Product collection hooks
 - Shows number of products in each category
 
@@ -494,6 +515,7 @@ Flow:
 ```
 
 **Email Template Features:**
+
 - Professional HTML design
 - Brand colors (#084710)
 - Responsive layout
@@ -539,6 +561,7 @@ Flow:
 ```
 
 **Security:**
+
 ```typescript
 const hash = crypto
   .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
@@ -561,10 +584,12 @@ if (hash !== signature) {
 #### Features
 
 **1. Dual Authentication**
+
 - Payload JWT tokens (email/password)
 - NextAuth (Google OAuth)
 
 **2. State Management**
+
 ```typescript
 const [user, setUser] = useState<User | null>(null)
 const [token, setToken] = useState<string | null>(null)
@@ -572,6 +597,7 @@ const [loading, setLoading] = useState(true)
 ```
 
 **3. Methods**
+
 - `login(email, password)` - Payload auth
 - `loginWithGoogle()` - OAuth
 - `register(data)` - Create account
@@ -582,6 +608,7 @@ const [loading, setLoading] = useState(true)
 - `resetPassword(token, password)` - Complete reset
 
 **4. Token Storage**
+
 ```typescript
 // Store in localStorage (client-side)
 localStorage.setItem('payload-token', authToken)
@@ -601,27 +628,31 @@ headers: {
 #### Features
 
 **1. Guest + Logged-in Support**
+
 ```typescript
 // Guest: localStorage
 // Logged-in: Synced to user.cart in database
 ```
 
 **2. Cart Item Structure**
+
 ```typescript
 type CartItem = {
   product: Product
   quantity: number
-  variantSku: string  // For product variants
+  variantSku: string // For product variants
 }
 ```
 
 **3. Methods**
+
 - `addItem(product, variantSku, quantity)`
 - `removeItem(productId, variantSku)`
 - `updateQuantity(productId, variantSku, quantity)`
 - `clearCart()`
 
 **4. Auto-Sync Logic**
+
 ```typescript
 useEffect(() => {
   if (!user) {
@@ -635,6 +666,7 @@ useEffect(() => {
 ```
 
 **5. Login Merge**
+
 ```typescript
 // When user logs in, merge guest cart with server cart
 const mergeCart = async (guestCart) => {
@@ -650,6 +682,7 @@ const mergeCart = async (guestCart) => {
 **File**: `src/providers/Wishlist/index.tsx`
 
 Similar to Cart Provider but simpler:
+
 - No quantities
 - Just product references
 - Guest + logged-in support
@@ -666,30 +699,36 @@ Similar to Cart Provider but simpler:
 #### Features
 
 **1. Image Gallery**
+
 - Main image display
 - Thumbnail navigation
 - Click to switch images
 
 **2. Product Info**
+
 - Title, rating, reviews count
 - Price with discount badge
 - Stock status indicator
 - Quantity selector
 
 **3. Action Buttons**
+
 - Buy Now (add to cart + redirect to checkout)
 - Add to Cart
 - Add to Wishlist (toggle)
 
 **4. Tabs**
+
 - Product Details (description, features, shipping)
 - Reviews (list, form, summary)
 
 **5. Related Products**
+
 - Grid of similar products
 - Uses ProductCard component
 
 #### State Management
+
 ```typescript
 const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 const [quantity, setQuantity] = useState(1)
@@ -707,20 +746,24 @@ const [reviews, setReviews] = useState(initialReviews)
 #### Features
 
 **1. Payment Method Selection**
+
 - Pay Online (Paystack)
 - Pay on Pickup (Cash)
 
 **2. Forms**
+
 - Contact Information
 - Shipping Address (online only)
 - Billing Address (optional, separate)
 
 **3. Order Summary**
+
 - Cart items with images
 - Subtotal, shipping, total
 - Free shipping threshold (₦5,000)
 
 **4. Validation**
+
 ```typescript
 const validateForm = () => {
   if (!shippingForm.name || !shippingForm.phone || !shippingForm.email) {
@@ -733,6 +776,7 @@ const validateForm = () => {
 ```
 
 **5. Submission**
+
 ```typescript
 const onSubmit = async () => {
   const orderData = {
@@ -742,18 +786,18 @@ const onSubmit = async () => {
     paymentMethod,
     total,
     subtotal,
-    shipping
+    shipping,
   }
-  
+
   const res = await fetch('/api/checkout', {
     method: 'POST',
-    body: JSON.stringify(orderData)
+    body: JSON.stringify(orderData),
   })
-  
+
   if (paymentMethod === 'pickup') {
     router.push(`/order-confirmation?orderId=${data.orderId}`)
   } else {
-    window.location.href = data.authorization_url  // Paystack
+    window.location.href = data.authorization_url // Paystack
   }
 }
 ```
@@ -767,6 +811,7 @@ const onSubmit = async () => {
 #### Features
 
 **1. Product Display**
+
 - Featured image
 - Title, brand
 - Star rating
@@ -774,15 +819,18 @@ const onSubmit = async () => {
 - Stock status
 
 **2. Wishlist Button**
+
 - Heart icon (filled/outline)
 - Tooltip on hover
 - Animation on click
 
 **3. Add to Cart Button**
+
 - Shopping cart icon
 - Disabled if out of stock
 
 #### Props
+
 ```typescript
 interface ProductCardProps {
   product: Product
@@ -800,21 +848,25 @@ interface ProductCardProps {
 #### Features
 
 **1. Responsive Design**
+
 - Desktop: Full navigation
 - Tablet: Simplified nav
 - Mobile: Drawer menu
 
 **2. Search Bar**
+
 - Input with icon
 - Submit redirects to `/search?q=...`
 
 **3. Navigation Links**
+
 - Help dropdown
 - Cart with badge
 - Wishlist with badge
 - Account dropdown
 
 **4. User Menu (Logged In)**
+
 - User name
 - Wishlist
 - Orders
@@ -822,12 +874,14 @@ interface ProductCardProps {
 - Sign Out
 
 **5. Guest Menu**
+
 - Sign In button
 - Create Account link
 - Wishlist (guest)
 - Orders (disabled)
 
 **6. Scroll Behavior**
+
 ```typescript
 const [isScrolled, setIsScrolled] = useState(false)
 
@@ -928,6 +982,7 @@ useEffect(() => {
 ### 8.1 Paystack Setup
 
 **Environment Variables:**
+
 ```env
 PAYSTACK_SECRET_KEY=sk_test_...
 PAYSTACK_PUBLIC_KEY=pk_test_...
@@ -980,11 +1035,11 @@ if (hash !== signature) {
 // Check if order already paid
 const order = await payload.findByID({
   collection: 'orders',
-  id: orderId
+  id: orderId,
 })
 
 if (order.paymentStatus === 'paid') {
-  return new Response(null, { status: 200 })  // Already processed
+  return new Response(null, { status: 200 }) // Already processed
 }
 ```
 
@@ -993,30 +1048,36 @@ if (order.paymentStatus === 'paid') {
 ## Key Concepts Summary
 
 ### 1. Collections vs API Routes
+
 - **Collections**: Data models (Products, Orders, Users)
 - **API Routes**: Custom endpoints for specific logic
 
 ### 2. Hooks
+
 - **beforeChange**: Modify data before saving
 - **afterChange**: Trigger actions after saving
 - **afterDelete**: Cleanup after deletion
 
 ### 3. Access Control
+
 - **Function-based**: `({ req }) => boolean | query`
 - **Admin-only**: `authenticated`
 - **Public**: `() => true`
 
 ### 4. Relationships
+
 - **hasMany**: One-to-many (Product → Categories)
 - **Single**: One-to-one (Order → User)
 - **Depth**: How deep to populate (0 = IDs only, 1+ = full objects)
 
 ### 5. State Management
+
 - **Server**: Payload collections
 - **Client**: React Context (Auth, Cart, Wishlist)
 - **Sync**: useEffect + API calls
 
 ### 6. File Structure
+
 - **(frontend)**: Public pages
 - **(payload)**: Admin panel
 - **api**: Custom endpoints
@@ -1060,22 +1121,25 @@ CRON_SECRET=...
 ## Common Patterns
 
 ### 1. Fetching Data (Server Component)
+
 ```typescript
 const payload = await getPayload({ config })
 const products = await payload.find({
   collection: 'products',
   where: { status: { equals: 'published' } },
-  limit: 10
+  limit: 10,
 })
 ```
 
 ### 2. Fetching Data (Client Component)
+
 ```typescript
 const response = await fetch('/api/products')
 const data = await response.json()
 ```
 
 ### 3. Using Providers
+
 ```typescript
 const { user, login, logout } = useAuth()
 const { items, addItem, removeItem } = useCart()
@@ -1083,6 +1147,7 @@ const { isInWishlist, addItem } = useWishlist()
 ```
 
 ### 4. Protected Routes
+
 ```typescript
 // In page component
 if (!user) {
@@ -1091,6 +1156,7 @@ if (!user) {
 ```
 
 ### 5. Toast Notifications
+
 ```typescript
 import toast from 'react-hot-toast'
 
@@ -1103,22 +1169,29 @@ toast.error('Failed to process payment')
 ## Troubleshooting
 
 ### Issue: "Cannot find module '@/payload.config'"
+
 **Solution**: Check `tsconfig.json` has `"@/*": ["./src/*"]`
 
 ### Issue: Webhook not receiving events
-**Solution**: 
+
+**Solution**:
+
 1. Check Paystack dashboard webhook URL
 2. Verify signature validation
 3. Check server logs
 
 ### Issue: Cart not syncing
+
 **Solution**:
+
 1. Check user is logged in
 2. Verify token in localStorage
 3. Check API endpoint `/api/users/cart`
 
 ### Issue: Images not loading
+
 **Solution**:
+
 1. Check Vercel Blob token
 2. Verify media collection upload
 3. Check image URL in database
@@ -1140,6 +1213,7 @@ toast.error('Failed to process payment')
 **End of Guide**
 
 For more information, refer to:
+
 - [Payload CMS Docs](https://payloadcms.com/docs)
 - [Next.js Docs](https://nextjs.org/docs)
 - [Paystack Docs](https://paystack.com/docs)

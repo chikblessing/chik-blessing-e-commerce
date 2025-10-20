@@ -33,13 +33,23 @@ export async function POST(request: NextRequest) {
 
     const user = users.docs[0]
 
-    // Generate password reset token
-    const token = await payload.forgotPassword({
-      collection: 'users',
-      data: {
-        email: email,
-      },
-    })
+    // Generate password reset token using Payload's built-in method
+    let token: string
+    try {
+      token = await payload.forgotPassword({
+        collection: 'users',
+        data: {
+          email: email,
+        },
+        disableEmail: true, // We'll send our own email
+      })
+    } catch (error: any) {
+      console.error('Error generating reset token:', error)
+      return NextResponse.json(
+        { error: 'Failed to generate reset token', details: error.message },
+        { status: 500 },
+      )
+    }
 
     // Send email using Resend API
     const resetLink = `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/auth/reset-password?token=${token}`
@@ -57,8 +67,9 @@ export async function POST(request: NextRequest) {
 
           <!-- Header -->
           <div style="background: linear-gradient(135deg, #084710 0%, #0a5c14 100%); padding: 40px 30px; text-align: center;">
-            <div style="background-color: white; display: inline-block; padding: 15px 25px; border-radius: 10px; margin-bottom: 20px;">
-              <h1 style="color: #084710; margin: 0; font-size: 24px; font-weight: bold;">CBGS</h1>
+            <div style="display: inline-block; padding: 15px 25px; border-radius: 10px; margin-bottom: 20px;">
+                                              <image src="/assets/cbgs-logo.png" alt="Cbgs-logo" width={80} height={45} priority />
+
             </div>
             <h2 style="color: white; margin: 0; font-size: 28px; font-weight: 300;">Password Reset</h2>
           </div>
