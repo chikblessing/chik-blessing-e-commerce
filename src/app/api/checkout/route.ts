@@ -229,6 +229,7 @@ export async function POST(request: NextRequest) {
     const order = await payload.create({
       collection: 'orders',
       data: {
+        orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 11).toUpperCase()}`,
         customer: customer || undefined,
         guestEmail: guestEmail || undefined,
         items: items.map((item: any) => ({
