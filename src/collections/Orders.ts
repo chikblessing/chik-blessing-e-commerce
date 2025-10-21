@@ -12,8 +12,8 @@ const snapshotProductData: CollectionBeforeChangeHook = async ({
   operation,
   originalDoc,
 }) => {
-  // 1. Generate Order Number (only on create)
-  if (operation === 'create') {
+  // 1. Generate Order Number (only on create, if not already provided)
+  if (operation === 'create' && !data.orderNumber) {
     data.orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 11).toUpperCase()}`
   }
 

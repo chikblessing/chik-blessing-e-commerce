@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
 
             <p style="color: #666666; font-size: 14px; line-height: 1.6; text-align: center; margin-top: 30px;">
               Need help? Contact our support team at
-              <a href="mailto:support@chikblessingglobal.com" style="color: #084710; text-decoration: none;">support@chikblessingglobal.com</a>
+              <a href="mailto:info@chikblessing.com" style="color: #084710; text-decoration: none;">support@chikblessingglobal.com</a>
             </p>
           </div>
 
@@ -137,6 +137,9 @@ export async function POST(request: NextRequest) {
     `
 
     try {
+      // Use environment variable for sender email, fallback to test email
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@chikblessing.com'
+
       const resendResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -144,26 +147,40 @@ export async function POST(request: NextRequest) {
           Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: 'Chik Blessing Global Store <onboarding@resend.dev>',
+          from: `Chik Blessing Global Store <${fromEmail}>`,
           to: [email],
           subject: 'Reset Your Password - Chik Blessing Global Store',
           html: emailHTML,
         }),
       })
 
+      const responseData = await resendResponse.json()
+
       if (!resendResponse.ok) {
-        const errorData = await resendResponse.json()
-        console.error('Resend API error:', errorData)
-        throw new Error('Failed to send email')
+        console.error('Resend API error:', responseData)
+        console.error('Status:', resendResponse.status)
+        console.error('Using from email:', fromEmail)
+
+        // Provide more specific error message
+        let errorMessage = 'Failed to send email'
+        if (responseData.message) {
+          errorMessage = responseData.message
+        }
+        if (resendResponse.status === 403) {
+          errorMessage = 'Email sending not authorized. Please verify your domain with Resend.'
+        }
+
+        throw new Error(errorMessage)
       }
 
       console.log('Password reset email sent successfully to:', email)
+      console.log('Resend response:', responseData)
     } catch (emailError: any) {
       console.error('Failed to send password reset email:', emailError)
       return NextResponse.json(
         {
           error: 'Failed to send password reset email',
-          details: emailError.message,
+          details: emailError.message || 'Unknown error',
         },
         { status: 500 },
       )
