@@ -454,7 +454,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>
                       {' '}
-                      <span className="text-[16px] text-black flex-grow text-right">
+                      <span className="text-[16px] text-black flex-grow">
                         Hi, {user?.firstName || user?.name?.split(' ')[0] || 'User'}
                       </span>
                     </DropdownMenuItem>

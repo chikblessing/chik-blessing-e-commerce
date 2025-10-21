@@ -266,10 +266,7 @@ export default function OrdersClient() {
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900 mb-1">{item.productTitle}</h3>
                       {item.sku && <p className="text-sm text-gray-600">SKU: {item.sku}</p>}
-                      <p className="text-sm text-gray-600">
-                        Size: M<br />
-                        Color: White
-                      </p>
+                   
                     </div>
                     <div className="text-right">
                       <p className="text-gray-600 mb-1">
