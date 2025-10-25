@@ -40,6 +40,11 @@ export const authOptions: NextAuthOptions = {
           })
 
           if (result.user) {
+            // Check if account is suspended
+            if (result.user.suspended) {
+              throw new Error('Account suspended. Please contact support.')
+            }
+
             return {
               id: result.user.id,
               email: result.user.email,
@@ -89,6 +94,13 @@ export const authOptions: NextAuthOptions = {
                 // Don't set password for OAuth users
               },
             })
+          } else {
+            // Check if existing user is suspended
+            const existingUser = existingUsers.docs[0]
+            if (existingUser.suspended) {
+              console.log('Suspended user attempted to sign in:', user.email)
+              return false
+            }
           }
 
           return true

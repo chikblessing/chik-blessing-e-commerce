@@ -124,11 +124,11 @@ export default function HeroSection() {
                         >
                           <span className="flex items-center gap-2">
                             {category.title}
-                            {category.productsCount > 0 && (
+                            {/* {category.productsCount > 0 && (
                               <span className="text-xs bg-[#084710] text-white px-2 py-0.5 rounded-full">
                                 {category.productsCount}
                               </span>
-                            )}
+                            )} */}
                           </span>
                         </Link>
 
@@ -175,11 +175,11 @@ export default function HeroSection() {
                                 <span className="flex items-center gap-2">
                                   <span className="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
                                   {subcat.title}
-                                  {subcat.productsCount > 0 && (
+                                  {/* {subcat.productsCount > 0 && (
                                     <span className="text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full ml-auto">
                                       {subcat.productsCount}
                                     </span>
-                                  )}
+                                  )} */}
                                 </span>
                               </Link>
                             ))}

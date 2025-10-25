@@ -1,6 +1,7 @@
 // providers/Auth/index.tsx
 'use client'
 import { createContext, useContext, useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { User } from '@/payload-types'
 import { apiClient } from './apiClient'
@@ -189,6 +190,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = () => {
     // 🟢 Simplified Logout
     clearAuth()
+    // Show toast to confirm logout
+    toast.success('Logged out successfully')
     // Also sign out from NextAuth if user is signed in via Google
     if (session) {
       signOut({ callbackUrl: '/' })

@@ -80,7 +80,7 @@ export const FaqSection = () => {
       <div className="mb-20">
        
 
-        <div className="py-11 container mx-auto bg-[#F4F4F4] rounded-xl">
+  <div className="py-11 max-w-3xl mx-auto bg-[#F4F4F4] rounded-xl px-6">
           <h2 className="text-3xl text-center font-bold py-8">Frequently Asked Questions</h2>
 
           {questions.map((question, index) => (
@@ -88,7 +88,7 @@ export const FaqSection = () => {
               key={index}
               className="w-full  bg-white border border-[#084710] rounded-3xl shadow-2xl  my-4"
             >
-              <div className="w-full py-4 px-4">
+              <div className="w-full py-1 px-4">
                 <div className="flex gap-2 items-center justify-between">
                   <p className="text-lg font-semibold">{question.title}</p>
                   <div className="my-4 pr-6">

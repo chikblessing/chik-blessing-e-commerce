@@ -452,6 +452,10 @@ export interface User {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Suspend this user account to prevent login
+   */
+  suspended?: boolean | null;
   verificationOTP?: string | null;
   otpExpiry?: string | null;
   updatedAt: string;
@@ -2110,6 +2114,7 @@ export interface UsersSelect<T extends boolean = true> {
         order?: T;
         id?: T;
       };
+  suspended?: T;
   verificationOTP?: T;
   otpExpiry?: T;
   updatedAt?: T;

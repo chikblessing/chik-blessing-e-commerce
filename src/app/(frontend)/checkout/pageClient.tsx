@@ -7,6 +7,13 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
 
+interface ShippingZone {
+  id: string
+  name: string
+  baseRate: number
+  freeShippingThreshold?: number
+}
+
 export default function CheckoutClient() {
   const { items, totalPrice, clearCart } = useCart()
   const { user } = useAuth()
@@ -15,6 +22,7 @@ export default function CheckoutClient() {
   const [submitting, setSubmitting] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'pickup'>('online')
   const [sameAsShipping, setSameAsShipping] = useState(true)
+  const [shippingZone, setShippingZone] = useState<ShippingZone | null>(null)
 
   const [shippingForm, setShippingForm] = useState({
     name: user?.name || '',
@@ -38,10 +46,33 @@ export default function CheckoutClient() {
     country: 'Nigeria',
   })
 
+  // Load shipping zone from localStorage
+  React.useEffect(() => {
+    const savedZone = localStorage.getItem('shippingZone')
+    if (savedZone) {
+      try {
+        setShippingZone(JSON.parse(savedZone))
+      } catch (error) {
+        console.error('Failed to parse shipping zone:', error)
+      }
+    }
+  }, [])
+
   const shipping = useMemo(() => {
     if (paymentMethod === 'pickup') return 0
+
+    // Use shipping zone data if available
+    if (shippingZone) {
+      // Check if order qualifies for free shipping
+      if (shippingZone.freeShippingThreshold && totalPrice >= shippingZone.freeShippingThreshold) {
+        return 0
+      }
+      return shippingZone.baseRate
+    }
+
+    // Fallback to old logic
     return totalPrice >= 5000 ? 0 : 1500
-  }, [totalPrice, paymentMethod])
+  }, [totalPrice, paymentMethod, shippingZone])
 
   const grandTotal = totalPrice + shipping
 
@@ -423,7 +454,7 @@ export default function CheckoutClient() {
               {items.map((item) => {
                 const product = item.product as any
                 const price = product.salePrice || product.price || 0
-                const featuredImage = product.images?.find((img: any) => img.isFeature)
+                const featuredImage = product.images?.find((img: unknown) => img.isFeature)
                 const imageUrl = featuredImage?.image?.url || product.images?.[0]?.image?.url
 
                 return (

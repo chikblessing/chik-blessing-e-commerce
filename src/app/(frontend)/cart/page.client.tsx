@@ -1,15 +1,88 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useCart } from '@/providers/Cart'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import ProductImage from '../../../../public/assets/image1.png'
+import type { Product } from '@/payload-types'
+
+interface ShippingZone {
+  id: string
+  name: string
+  states: { state: string }[]
+  baseRate: number
+  freeShippingThreshold?: number
+  expressRate?: number
+  estimatedDays?: {
+    standard: number
+    express: number
+  }
+}
 
 export default function CartClient() {
   const { items, totalItems, totalPrice, updateQuantity, clearCart, removeItem } = useCart()
   const router = useRouter()
+  const [shippingZones, setShippingZones] = useState<ShippingZone[]>([])
+  const [selectedState, setSelectedState] = useState('')
+  const [deliveryFee, setDeliveryFee] = useState(0)
+  const [loadingZones, setLoadingZones] = useState(true)
+
+  // Fetch shipping zones on mount
+  useEffect(() => {
+    const fetchShippingZones = async () => {
+      try {
+        const response = await fetch('/api/shipping-zones')
+        const data = await response.json()
+        if (data.success && data.zones) {
+          setShippingZones(data.zones)
+          // Set default delivery fee from first zone
+          if (data.zones.length > 0) {
+            setDeliveryFee(data.zones[0].baseRate)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch shipping zones:', error)
+      } finally {
+        setLoadingZones(false)
+      }
+    }
+
+    fetchShippingZones()
+  }, [])
+
+  // Update delivery fee when state changes
+  useEffect(() => {
+    if (selectedState && shippingZones.length > 0) {
+      const matchingZone = shippingZones.find((zone) =>
+        zone.states?.some((s) => s.state.toLowerCase() === selectedState.toLowerCase()),
+      )
+
+      if (matchingZone) {
+        // Check if order qualifies for free shipping
+        if (
+          matchingZone.freeShippingThreshold &&
+          totalPrice >= matchingZone.freeShippingThreshold
+        ) {
+          setDeliveryFee(0)
+        } else {
+          setDeliveryFee(matchingZone.baseRate)
+        }
+        // Store selected state and zone info for checkout
+        localStorage.setItem('selectedShippingState', selectedState)
+        localStorage.setItem('shippingZone', JSON.stringify(matchingZone))
+      }
+    }
+  }, [selectedState, shippingZones, totalPrice])
+
+  // Load saved state from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem('selectedShippingState')
+    if (savedState) {
+      setSelectedState(savedState)
+    }
+  }, [])
 
   const handleQuantityChange = (productId: string, variantSku: string, newQuantity: number) => {
     if (newQuantity < 1) return
@@ -20,14 +93,16 @@ export default function CartClient() {
     removeItem(productId, variantSku)
   }
 
-  const deliveryFee = 15
   const subtotal = totalPrice
   const total = subtotal + deliveryFee
+
+  // Get all unique states from shipping zones
+  const allStates = shippingZones.flatMap((zone) => zone.states?.map((s) => s.state) || [])
 
   return (
     <>
       <div className="container mx-auto px-4 mt-[100px]">
-        <div className="flex items-center justify-between my-6">
+        <div className="flex items-center justify-between my-12">
           <h2 className="text-2xl font-semibold">Your Cart ({totalItems} items)</h2>
           {totalItems > 0 && (
             <button
@@ -55,9 +130,9 @@ export default function CartClient() {
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
                 {items.map((item) => {
-                  const product = item.product as any
+                  const product = item.product as Product
                   const featuredImage =
-                    product.images?.find((img: any) => img.isFeature) || product.images?.[0]
+                    product.images?.find((img) => img.isFeature) || product.images?.[0]
                   const displayPrice = product.salePrice || product.price
 
                   return (
@@ -67,7 +142,11 @@ export default function CartClient() {
                         <div className="flex gap-4 flex-1">
                           <div className="w-20 h-20 flex-shrink-0">
                             <Image
-                              src={featuredImage?.image?.url || ProductImage}
+                              src={
+                                (typeof featuredImage?.image === 'object'
+                                  ? featuredImage.image.url
+                                  : null) || ProductImage
+                              }
                               alt={featuredImage?.alt || product.title}
                               width={100}
                               height={100}
@@ -80,9 +159,9 @@ export default function CartClient() {
                                 {product.title}
                               </h3>
                               <p className="text-sm text-gray-600">{product.brand}</p>
-                              <p className="text-sm text-gray-600">
+                              {/* <p className="text-sm text-gray-600">
                                 {product.shortDescription || 'Premium quality product'}
-                              </p>
+                              </p> */}
                             </div>
                             <div className="text-lg font-semibold text-gray-900 mt-2">
                               ₦{displayPrice.toLocaleString()}
@@ -165,6 +244,31 @@ export default function CartClient() {
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-xl font-semibold mb-6">Order Summary</h3>
 
+                {/* Location Selector */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Delivery Location
+                  </label>
+                  <select
+                    value={selectedState}
+                    onChange={(e) => setSelectedState(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    disabled={loadingZones}
+                  >
+                    <option value="">Select your state</option>
+                    {allStates.map((state, index) => (
+                      <option key={index} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
+                  {!selectedState && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      Select your location to calculate delivery fee
+                    </p>
+                  )}
+                </div>
+
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Subtotal</span>
@@ -172,8 +276,17 @@ export default function CartClient() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Delivery Fee</span>
-                    <span className="font-medium">₦{deliveryFee}</span>
+                    <span className="font-medium">
+                      {deliveryFee === 0 ? (
+                        <span className="text-green-600">FREE</span>
+                      ) : (
+                        `₦${deliveryFee.toLocaleString()}`
+                      )}
+                    </span>
                   </div>
+                  {deliveryFee === 0 && selectedState && (
+                    <p className="text-xs text-green-600">🎉 You qualify for free shipping!</p>
+                  )}
                   <div className="border-t pt-4">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold">Total</span>

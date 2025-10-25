@@ -39,4 +39,11 @@ export interface CustomUser extends TypedUser {
   // 🟢 FIX: Use proper relationship structure matching Payload collection definitions
   wishlist?: { product: string; id?: string | null }[] // Array of product relationship objects
   orderHistory?: { order: string; id?: string | null }[] // Array of order relationship objects
+
+  // Account status
+  suspended?: boolean
+
+  // OTP verification fields
+  verificationOTP?: string
+  otpExpiry?: string
 }

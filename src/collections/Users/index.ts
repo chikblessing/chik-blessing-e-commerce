@@ -293,6 +293,21 @@ export const Users: CollectionConfig = {
       ],
     },
     {
+      name: 'suspended',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Suspend this user account to prevent login',
+        position: 'sidebar',
+      },
+      access: {
+        update: ({ req: { user } }) => {
+          // Only admins can suspend/unsuspend users
+          return Boolean(user && (user as CustomUser).role === 'admin')
+        },
+      },
+    },
+    {
       name: 'verificationOTP',
       type: 'text',
       admin: {

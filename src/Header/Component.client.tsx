@@ -39,7 +39,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
   const { totalItems: cartItems } = useCart()
   const { totalItems: wishlistItems } = useWishlist()
   const pathname = usePathname()
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const isMobile = useMediaQuery('(max-width: 640px)')
   const isTablet = useMediaQuery('(min-width: 641px) and (max-width: 1024px)')
   const isDesktop = useMediaQuery('(min-width: 1025px)')
@@ -112,7 +112,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
       <div className="mx-auto my-8">
         <Image src="/assets/cbgs-logo.png" alt="Cbgs-logo" width={80} height={45} priority />
       </div>
-      <div className="flex flex-col space-y-6 my-8 px-6 pb-8">
+      <div className="flex flex-col space-y-6 mx-auto my-8 px-6 pb-8">
         {/* User Info Section */}
         {user ? (
           <div className="pb-4 border-b border-gray-200">
@@ -207,12 +207,12 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
               >
                 <path d="M9.74462 21.7446C5.30798 20.7219 2 16.7473 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 16.7473 18.692 20.7219 14.2554 21.7446L12 24L9.74462 21.7446ZM7.01173 18.2567C7.92447 18.986 9.00433 19.5215 10.1939 19.7957L10.7531 19.9246L12 21.1716L13.2469 19.9246L13.8061 19.7957C15.0745 19.5033 16.2183 18.9139 17.1676 18.1091C15.8965 16.8078 14.1225 16 12.1597 16C10.1238 16 8.29083 16.8692 7.01173 18.2567ZM5.61562 16.8214C7.25644 15.0841 9.58146 14 12.1597 14C14.644 14 16.8931 15.0065 18.5216 16.634C19.4563 15.3185 20 13.7141 20 12C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12C4 13.7964 4.59708 15.4722 5.61562 16.8214ZM12 13C9.79086 13 8 11.2091 8 9C8 6.79086 9.79086 5 12 5C14.2091 5 16 6.79086 16 9C16 11.2091 14.2091 13 12 13ZM12 11C13.1046 11 14 10.1046 14 9C14 7.89543 13.1046 7 12 7C10.8954 7 10 7.89543 10 9C10 10.1046 10.8954 11 12 11Z"></path>
               </svg>
-              <span>Account Management</span>
+              <span>Account Settings</span>
             </div>
           </Link>
         )}
 
-        <Link href="/featured-products" className={getLinkMobile('/blog')} onClick={handleMobileLinkClick}>
+        <Link href="/blog" className={getLinkMobile('/blog')} onClick={handleMobileLinkClick}>
           <div className="flex items-center gap-3">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -223,7 +223,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
             >
               <path d="M20 22H4C3.44772 22 3 21.5523 3 21V3C3 2.44772 3.44772 2 4 2H20C20.5523 2 21 2.44772 21 3V21C21 21.5523 20.5523 22 20 22ZM19 20V4H5V20H19ZM7 6H11V10H7V6ZM7 12H17V14H7V12ZM7 16H17V18H7V16ZM13 7H17V9H13V7Z"></path>
             </svg>
-            <span>Products</span>
+            <span>Blog</span>
           </div>
         </Link>
 
@@ -247,7 +247,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
           <div className="pt-4 border-t border-gray-200">
             <button
               onClick={() => {
-                logout()
+                // Add sign out logic here
                 handleMobileLinkClick()
               }}
               className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
@@ -304,7 +304,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
               <Search className="pointer-events-none absolute left-3 top-1/2 h-[24px] w-[24px] -translate-y-1/2 text-gray-400" />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#084710] hover:bg-black text-white px-4 py-1.5 rounded-xl transition-colors duration-200 text-sm font-medium"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#084710] hover:bg-black text-white px-4 py-1.5 rounded-lg transition-colors duration-200 text-sm font-medium"
               >
                 Search
               </button>
@@ -454,9 +454,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>
                       {' '}
-                      <span className="text-[16px] text-black flex-grow">
-                        Hi, {user?.firstName || user?.name?.split(' ')[0] || 'User'}
-                      </span>
+                      <span className="text-[16px] flex-grow">Hi, {user.name || user.email?.split('@')[0]}</span>
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />
@@ -479,7 +477,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       {' '}
-                      <Link href="/orders" className={getLinkClasses('/wishlist')}>
+                      <Link href="/orders" className={getLinkClasses('/orders')}>
                         <div className="flex items-center justify-between gap-6 relative">
                           <span className="relative">
                             <svg
@@ -498,7 +496,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       {' '}
-                      <Link href="/profile" className={getLinkClasses('/profile')}>
+                      <Link href="/account-management" className={getLinkClasses('/account-management')}>
                         <div className="flex items-center justify-between gap-6 relative">
                           <span className="relative">
                             <svg
@@ -519,10 +517,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       {' '}
-                      <button
-                        onClick={logout}
-                        className="bg-red-500 text-white flex gap-3 items-center hover:bg-black text-md py-2 w-full rounded-lg"
-                      >
+                      <button className="bg-red-500 text-white flex gap-3 items-center hover:bg-black text-md py-2 w-full rounded-lg">
                         <span>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
