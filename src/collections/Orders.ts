@@ -475,7 +475,7 @@ export const Orders: CollectionConfig = {
               await req.payload.update({
                 collection: 'users',
                 id: customerId,
-                data: { orderHistory } as unknown,
+                data: { orderHistory } as any,
               })
             }
           } catch (error) {
