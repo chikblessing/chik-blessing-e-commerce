@@ -14,6 +14,7 @@ import FeaturedProducts from '@/components/pageComponents/FeaturedProducts/Featu
 import CounterSection from '@/components/pageComponents/Counter/CounterSection'
 import TopSellingProducts from '@/components/pageComponents/TopSellingProduct/TopSellingProducts'
 import { FaqSection } from '@/components/pageComponents/Faq/FaqSection'
+import ProductSection from '@/components/pageComponents/ProductSection/ProductSection'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -72,6 +73,35 @@ export default async function Page({ params: paramsPromise }: Args) {
         <FeaturedProducts />
         <CounterSection />
         <TopSellingProducts />
+
+        {/* New Arrivals - Recently added products */}
+        <ProductSection
+          title="New Arrivals"
+          apiEndpoint="/api/search/products?limit=4&sort=-createdAt"
+          viewAllLink="/featured-products?sort=new"
+        />
+
+        {/* On Sale - Products with sale prices */}
+        <ProductSection
+          title="Special Deals"
+          apiEndpoint="/api/products/on-sale?limit=4"
+          viewAllLink="/featured-products?sort=sale"
+        />
+
+        {/* Best Rated - Highest rated products */}
+        <ProductSection
+          title="Customer Favorites"
+          apiEndpoint="/api/search/products?limit=4&sort=-rating.average&minRating=4"
+          viewAllLink="/featured-products?sort=rating"
+        />
+
+        {/* In Stock - Available products */}
+        <ProductSection
+          title="Ready to Ship"
+          apiEndpoint="/api/search/products?limit=4&inStock=true&sort=-createdAt"
+          viewAllLink="/featured-products?inStock=true"
+        />
+
         <FaqSection />
       </div>
     </>

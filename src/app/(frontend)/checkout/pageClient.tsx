@@ -6,6 +6,14 @@ import { useAuth } from '@/providers/Auth'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
+import type { Product } from '@/payload-types'
+
+interface ShippingZone {
+  id: string
+  name: string
+  baseRate: number
+  freeShippingThreshold?: number
+}
 
 export default function CheckoutClient() {
   const { items, totalPrice, clearCart } = useCart()
@@ -15,6 +23,7 @@ export default function CheckoutClient() {
   const [submitting, setSubmitting] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'pickup'>('online')
   const [sameAsShipping, setSameAsShipping] = useState(true)
+  const [shippingZone, setShippingZone] = useState<ShippingZone | null>(null)
 
   const [shippingForm, setShippingForm] = useState({
     name: user?.name || '',
@@ -38,10 +47,33 @@ export default function CheckoutClient() {
     country: 'Nigeria',
   })
 
+  // Load shipping zone from localStorage
+  React.useEffect(() => {
+    const savedZone = localStorage.getItem('shippingZone')
+    if (savedZone) {
+      try {
+        setShippingZone(JSON.parse(savedZone))
+      } catch (error) {
+        console.error('Failed to parse shipping zone:', error)
+      }
+    }
+  }, [])
+
   const shipping = useMemo(() => {
     if (paymentMethod === 'pickup') return 0
+
+    // Use shipping zone data if available
+    if (shippingZone) {
+      // Check if order qualifies for free shipping
+      if (shippingZone.freeShippingThreshold && totalPrice >= shippingZone.freeShippingThreshold) {
+        return 0
+      }
+      return shippingZone.baseRate
+    }
+
+    // Fallback to old logic
     return totalPrice >= 5000 ? 0 : 1500
-  }, [totalPrice, paymentMethod])
+  }, [totalPrice, paymentMethod, shippingZone])
 
   const grandTotal = totalPrice + shipping
 
@@ -108,8 +140,9 @@ export default function CheckoutClient() {
           throw new Error('Missing Paystack URL')
         }
       }
-    } catch (e: any) {
-      toast.error(e.message || 'Error processing checkout')
+    } catch (e) {
+      const error = e as Error
+      toast.error(error.message || 'Error processing checkout')
     } finally {
       setSubmitting(false)
     }
@@ -421,10 +454,14 @@ export default function CheckoutClient() {
             {/* Cart Items */}
             <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
               {items.map((item) => {
-                const product = item.product as any
+                const product = item.product as Product
                 const price = product.salePrice || product.price || 0
-                const featuredImage = product.images?.find((img: any) => img.isFeature)
-                const imageUrl = featuredImage?.image?.url || product.images?.[0]?.image?.url
+                const featuredImage = product.images?.find((img) => img.isFeature)
+                const imageUrl =
+                  (typeof featuredImage?.image === 'object' ? featuredImage.image.url : null) ||
+                  (typeof product.images?.[0]?.image === 'object'
+                    ? product.images[0].image.url
+                    : null)
 
                 return (
                   <div key={`${product.id}-${item.variantSku || ''}`} className="flex gap-3">

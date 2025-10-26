@@ -117,8 +117,16 @@ export const Orders: CollectionConfig = {
         },
       }
     },
-    update: authenticated,
-    delete: authenticated,
+    update: ({ req: { user } }: UserAccessArgs) => {
+      const customUser = user as CustomUser | undefined
+      // Only admins can update orders
+      return customUser?.role === 'admin'
+    },
+    delete: ({ req: { user } }: UserAccessArgs) => {
+      const customUser = user as CustomUser | undefined
+      // Only admins can delete orders
+      return customUser?.role === 'admin'
+    },
   },
   admin: {
     useAsTitle: 'orderNumber',

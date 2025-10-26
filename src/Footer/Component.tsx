@@ -170,7 +170,7 @@ export async function Footer() {
                     Blogs
                   </Link>
                   <Link
-                    href="/faqs"
+                    href="/faq"
                     className="block text-sm md:text-base text-[#00000099] hover:text-[#07470F] transition-colors duration-200"
                   >
                     FAQs
