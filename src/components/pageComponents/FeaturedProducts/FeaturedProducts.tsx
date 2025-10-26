@@ -71,7 +71,7 @@ export default function FeaturedProducts() {
               <p className="text-gray-500 text-lg">No featured products available.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
+            <div className="mx-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
               {products.map((product) => (
                 <div key={product.id} className="h-full">
                   <ProductCard

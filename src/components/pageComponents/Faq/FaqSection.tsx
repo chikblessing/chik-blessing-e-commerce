@@ -78,9 +78,9 @@ export const FaqSection = () => {
   return (
     <>
       <div className="mb-20">
-       
 
-  <div className="py-11 max-w-3xl mx-auto bg-[#F4F4F4] rounded-xl px-6">
+
+  <div className="py-11 max-w-4xl mx-auto bg-[#F4F4F4] rounded-xl px-6">
           <h2 className="text-3xl text-center font-bold py-8">Frequently Asked Questions</h2>
 
           {questions.map((question, index) => (
