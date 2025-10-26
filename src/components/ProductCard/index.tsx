@@ -122,8 +122,8 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
               src={imageUrl}
               alt={featuredImage?.alt || product.title}
               className="w-full h-full object-cover hover:opacity-90 transition-opacity cursor-pointer"
-              width={300}
-              height={400}
+              width={150}
+              height={200}
               onError={(e) => {
                 // Fallback to placeholder if image fails to load
                 e.currentTarget.src = ProductImage.src
@@ -133,8 +133,8 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
         </Link>
         <button
           onClick={handleWishlistClick}
-          className={`absolute top-2 right-2 bg-white hover:bg-gray-50 p-2 rounded-full shadow-md transition-all duration-300 group 
-                   ${isClicked ? 'scale-125' : 'scale-100'} 
+          className={`absolute top-2 right-2 bg-white hover:bg-gray-50 p-2 rounded-full shadow-md transition-all duration-300 group
+                   ${isClicked ? 'scale-125' : 'scale-100'}
                    hover:scale-110 active:scale-95`}
           title={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
         >

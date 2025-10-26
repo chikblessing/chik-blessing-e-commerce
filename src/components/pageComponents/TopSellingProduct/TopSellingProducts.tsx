@@ -116,7 +116,7 @@ export default async function TopSellingProducts() {
     <div className="bg-[#F8F6F6] py-5 my-5">
       <div className="container mx-auto">
         <h3 className="text-3xl font-semibold text-center my-8">Top Selling Products</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
+        <div className="mx-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr">
           {products.map((product) => (
             <div key={product.id} className="h-full">
               <ProductCard key={product.id} product={product} />
