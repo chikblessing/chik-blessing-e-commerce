@@ -6,6 +6,7 @@ import { useAuth } from '@/providers/Auth'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
+import type { Product } from '@/payload-types'
 
 interface ShippingZone {
   id: string
@@ -139,8 +140,9 @@ export default function CheckoutClient() {
           throw new Error('Missing Paystack URL')
         }
       }
-    } catch (e: any) {
-      toast.error(e.message || 'Error processing checkout')
+    } catch (e) {
+      const error = e as Error
+      toast.error(error.message || 'Error processing checkout')
     } finally {
       setSubmitting(false)
     }
@@ -452,10 +454,14 @@ export default function CheckoutClient() {
             {/* Cart Items */}
             <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
               {items.map((item) => {
-                const product = item.product as any
+                const product = item.product as Product
                 const price = product.salePrice || product.price || 0
-                const featuredImage = product.images?.find((img: unknown) => img.isFeature)
-                const imageUrl = featuredImage?.image?.url || product.images?.[0]?.image?.url
+                const featuredImage = product.images?.find((img) => img.isFeature)
+                const imageUrl =
+                  (typeof featuredImage?.image === 'object' ? featuredImage.image.url : null) ||
+                  (typeof product.images?.[0]?.image === 'object'
+                    ? product.images[0].image.url
+                    : null)
 
                 return (
                   <div key={`${product.id}-${item.variantSku || ''}`} className="flex gap-3">
