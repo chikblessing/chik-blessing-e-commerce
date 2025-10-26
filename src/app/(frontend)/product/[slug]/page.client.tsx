@@ -117,31 +117,31 @@ export default function ProductClient({
   )
 
   return (
-    <div className="container mx-auto px-4 pt-[150px] pb-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-[150px] pb-8 max-w-7xl">
       {/* Product Details Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
         {/* Product Images */}
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-xl mx-auto lg:mx-0">
           {/* Main Image */}
-          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden max-h-[500px]">
             <Image
               src={
                 images[selectedImageIndex]?.image?.url || featuredImage?.image?.url || ProductImage
               }
               alt={images[selectedImageIndex]?.alt || product.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               width={500}
               height={500}
             />
           </div>
 
           {/* Thumbnail Images */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center lg:justify-start">
             {images.slice(0, 4).map((img: any, index: number) => (
               <button
                 key={index}
                 onClick={() => setSelectedImageIndex(index)}
-                className={`w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 ${
                   selectedImageIndex === index ? 'border-[#084710]' : 'border-gray-200'
                 }`}
               >
@@ -339,7 +339,7 @@ export default function ProductClient({
                         <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
                         <path d="M3 4a1 1 0 00-1 1v1a1 1 0 001 1h1l1.68 5.39A3 3 0 008.62 15h5.76a3 3 0 002.94-2.61L18 7H7.83l-.2-.8A1 1 0 006.66 6H3V4z" />
                       </svg>
-                      <span>Free shipping over ₦5,000 • 3-5 business days</span>
+                      {/* <span>Free shipping over ₦5,000 • 3-5 business days</span> */}
                     </div>
                     <div className="flex items-center gap-3">
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -349,7 +349,7 @@ export default function ProductClient({
                           clipRule="evenodd"
                         />
                       </svg>
-                      <span>30-day return • Next business day</span>
+                      <span>no refunds for product</span>
                     </div>
                   </div>
                 </div>

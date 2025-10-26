@@ -75,7 +75,7 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
   const displayPrice = product.salePrice || product.price
 
   return (
-    <div className="border border-[#084710] rounded-xl bg-white p-2 sm:p-3 flex flex-col h-full">
+    <div className="relative border border-[#084710] rounded-xl bg-white px-4 py-3 sm:px-3 sm:py-2 flex flex-col h-full max-w-[320px] sm:max-w-none mx-4 sm:mx-auto">
       <Link href={`/product/${product.slug}`} className="block">
         <div className="relative mb-3 sm:mb-6 group">
           <Image
