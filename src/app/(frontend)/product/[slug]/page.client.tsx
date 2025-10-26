@@ -117,31 +117,31 @@ export default function ProductClient({
   )
 
   return (
-    <div className="container mx-auto px-4 pt-[150px] pb-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-[150px] pb-8 max-w-7xl">
       {/* Product Details Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
         {/* Product Images */}
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-xl mx-auto lg:mx-0">
           {/* Main Image */}
-          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden max-h-[500px]">
             <Image
               src={
                 images[selectedImageIndex]?.image?.url || featuredImage?.image?.url || ProductImage
               }
               alt={images[selectedImageIndex]?.alt || product.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               width={500}
               height={500}
             />
           </div>
 
           {/* Thumbnail Images */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center lg:justify-start">
             {images.slice(0, 4).map((img: any, index: number) => (
               <button
                 key={index}
                 onClick={() => setSelectedImageIndex(index)}
-                className={`w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 ${
                   selectedImageIndex === index ? 'border-[#084710]' : 'border-gray-200'
                 }`}
               >
@@ -321,7 +321,7 @@ export default function ProductClient({
                   <div>
                     <h4 className="font-semibold mb-3">Key Features:</h4>
                     <ul className="space-y-2">
-                      {product.features.map((feature: any, index: number) => (
+                      {product.features.map((feature: unknown, index: number) => (
                         <li key={index} className="flex items-start gap-2">
                           <span className="text-[#084710] mt-1">•</span>
                           <span className="text-gray-700">{feature.feature}</span>
