@@ -321,7 +321,7 @@ export default function ProductClient({
                   <div>
                     <h4 className="font-semibold mb-3">Key Features:</h4>
                     <ul className="space-y-2">
-                      {product.features.map((feature: unknown, index: number) => (
+                      {product.features.map((feature: any, index: number) => (
                         <li key={index} className="flex items-start gap-2">
                           <span className="text-[#084710] mt-1">•</span>
                           <span className="text-gray-700">{feature.feature}</span>
@@ -339,7 +339,7 @@ export default function ProductClient({
                         <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
                         <path d="M3 4a1 1 0 00-1 1v1a1 1 0 001 1h1l1.68 5.39A3 3 0 008.62 15h5.76a3 3 0 002.94-2.61L18 7H7.83l-.2-.8A1 1 0 006.66 6H3V4z" />
                       </svg>
-                      <span>Free shipping over ₦5,000 • 3-5 business days</span>
+                      {/* <span>Free shipping over ₦5,000 • 3-5 business days</span> */}
                     </div>
                     <div className="flex items-center gap-3">
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -349,7 +349,7 @@ export default function ProductClient({
                           clipRule="evenodd"
                         />
                       </svg>
-                      <span>30-day return • Next business day</span>
+                      <span>no refunds for product</span>
                     </div>
                   </div>
                 </div>
