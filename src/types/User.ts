@@ -30,7 +30,7 @@ export interface CustomUser extends TypedUser {
   dateOfBirth?: string
 
   // Role field
-  role: 'admin' | 'customer'
+  role: 'admin' | 'customer' | 'super_admin'
 
   // Array and Relationship Fields
   addresses?: Address[]

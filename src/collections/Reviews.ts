@@ -3,6 +3,7 @@ import type { CollectionConfig, AccessArgs } from 'payload'
 import type { CustomUser } from '../types/User'
 
 import { authenticated } from '../access/authenticated'
+import { sendAdminNotification } from '../lib/email/sendAdminNotification'
 
 type UserAccessArgs = AccessArgs<CustomUser>
 
@@ -117,6 +118,51 @@ export const Reviews: CollectionConfig = {
       },
     ],
     afterChange: [
+      async ({ doc, req, operation }) => {
+        // Send admin notification for new reviews
+        if (operation === 'create') {
+          try {
+            const product =
+              typeof doc.product === 'object'
+                ? doc.product
+                : await req.payload.findByID({
+                    collection: 'products',
+                    id: doc.product as string,
+                  })
+
+            const customer =
+              typeof doc.customer === 'object'
+                ? doc.customer
+                : await req.payload.findByID({
+                    collection: 'users',
+                    id: doc.customer as string,
+                  })
+
+            await sendAdminNotification({
+              type: 'review',
+              subject: `New Review: ${doc.title}`,
+              title: 'New Product Review',
+              details: {
+                Product: (product as any).title || 'Unknown',
+                Customer: (customer as any).name || 'Unknown',
+                Rating: `${doc.rating}/5 ⭐`,
+                Title: doc.title,
+                Review: doc.comment?.substring(0, 100) + (doc.comment?.length > 100 ? '...' : ''),
+                'Verified Purchase': doc.isVerifiedPurchase ? 'Yes' : 'No',
+                Status: doc.status,
+                Date: new Date(doc.createdAt).toLocaleString(),
+              },
+              actionUrl: `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/admin/collections/reviews/${doc.id}`,
+            })
+          } catch (error) {
+            req.payload.logger.error({
+              msg: 'Failed to send admin notification for new review',
+              reviewId: doc.id,
+              error,
+            })
+          }
+        }
+      },
       async ({ doc, operation, req }) => {
         if (operation === 'create' || operation === 'update') {
           const productId = typeof doc.product === 'string' ? doc.product : doc.product.id

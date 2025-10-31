@@ -1,7 +1,6 @@
 'use client'
 import React, { useState } from 'react'
 
-
 const questions = [
   {
     title: 'Can I return a product if I change my mind after purchase ?',
@@ -78,9 +77,7 @@ export const FaqSection = () => {
   return (
     <>
       <div className="mb-20">
-
-
-  <div className="py-11 max-w-4xl mx-auto bg-[#F4F4F4] rounded-xl px-6">
+        <div className="py-11 max-w-4xl mx-auto bg-[#F4F4F4] rounded-xl px-6">
           <h2 className="text-3xl text-center font-bold py-8">Frequently Asked Questions</h2>
 
           {questions.map((question, index) => (
@@ -93,7 +90,7 @@ export const FaqSection = () => {
                   <p className="text-lg font-semibold">{question.title}</p>
                   <div className="my-4 pr-6">
                     <button onClick={() => toggleShowItem(index)}>
-                      {showItems[index] ?  (
+                      {showItems[index] ? (
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 24"
@@ -103,7 +100,7 @@ export const FaqSection = () => {
                         >
                           <path d="M5 11V13H19V11H5Z"></path>
                         </svg>
-                      ):(
+                      ) : (
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 24"
@@ -113,7 +110,7 @@ export const FaqSection = () => {
                         >
                           <path d="M11 11V5H13V11H19V13H13V19H11V13H5V11H11Z"></path>
                         </svg>
-                      ) }
+                      )}
                     </button>
                   </div>
                 </div>

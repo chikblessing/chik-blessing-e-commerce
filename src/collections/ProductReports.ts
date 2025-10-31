@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { authenticated } from '../access/authenticated'
+import { sendAdminNotification } from '../lib/email/sendAdminNotification'
 
 export const ProductReports: CollectionConfig = {
   slug: 'product-reports',
@@ -154,5 +155,52 @@ export const ProductReports: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    afterChange: [
+      async ({ doc, req, operation }) => {
+        // Send admin notification for new product reports
+        if (operation === 'create') {
+          try {
+            const reasonLabels: Record<string, string> = {
+              misleading: 'Wrong or misleading information',
+              inappropriate: 'Inappropriate content',
+              counterfeit: 'Counterfeit product',
+              prohibited: 'Prohibited or banned',
+            }
+
+            await sendAdminNotification({
+              type: 'product_report',
+              subject: `Product Report: ${doc.reason}`,
+              title: 'New Product Report',
+              details: {
+                Reporter: doc.name,
+                Email: doc.email,
+                Phone: doc.phone,
+                State: doc.state,
+                Type:
+                  doc.requesterType === 'organization'
+                    ? `Organization (${doc.companyName})`
+                    : 'Individual',
+                Reason: reasonLabels[doc.reason] || doc.reason,
+                'Product Link': doc.productLink,
+                'Additional Details':
+                  doc.additionalDetails?.substring(0, 150) +
+                    (doc.additionalDetails?.length > 150 ? '...' : '') || 'None',
+                Status: doc.status,
+                Date: new Date(doc.createdAt).toLocaleString(),
+              },
+              actionUrl: `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/admin/collections/product-reports/${doc.id}`,
+            })
+          } catch (error) {
+            req.payload.logger.error({
+              msg: 'Failed to send admin notification for product report',
+              reportId: doc.id,
+              error,
+            })
+          }
+        }
+      },
+    ],
+  },
   timestamps: true,
 }

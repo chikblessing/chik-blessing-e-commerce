@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { sendAdminNotification } from '../lib/email/sendAdminNotification'
 
 export const ContactSubmissions: CollectionConfig = {
   slug: 'contact-submissions',
@@ -76,5 +77,36 @@ export const ContactSubmissions: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    afterChange: [
+      async ({ doc, req, operation }) => {
+        // Send admin notification for new contact submissions
+        if (operation === 'create') {
+          try {
+            await sendAdminNotification({
+              type: 'contact',
+              subject: `New Contact Form: ${doc.fullName}`,
+              title: 'New Contact Form Submission',
+              details: {
+                Name: doc.fullName,
+                Email: doc.email,
+                Phone: doc.phone || 'Not provided',
+                Message: doc.message.substring(0, 200) + (doc.message.length > 200 ? '...' : ''),
+                Status: doc.status,
+                Date: new Date(doc.createdAt).toLocaleString(),
+              },
+              actionUrl: `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/admin/collections/contact-submissions/${doc.id}`,
+            })
+          } catch (error) {
+            req.payload.logger.error({
+              msg: 'Failed to send admin notification for contact submission',
+              submissionId: doc.id,
+              error,
+            })
+          }
+        }
+      },
+    ],
+  },
   timestamps: true,
 }

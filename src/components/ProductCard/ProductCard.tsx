@@ -81,7 +81,7 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
           <Image
             src={featuredImage?.image?.url || ProductImage}
             alt={featuredImage?.alt || product.title}
-            className="w-full h-28 sm:h-30 md:h-36 object-cover rounded-xl sm:rounded-2xl transition-transform duration-300 group-hover:scale-105"
+            className="w-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-300 group-hover:scale-105"
             width={150}
             height={150}
           />

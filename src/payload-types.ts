@@ -413,7 +413,10 @@ export interface User {
    * User profile picture or avatar.
    */
   avatar?: (string | null) | Media;
-  role: 'admin' | 'customer';
+  /**
+   * Super Admin: Full access including order deletion. Admin: Standard admin access. Customer: Regular user.
+   */
+  role: 'super_admin' | 'admin' | 'customer';
   phone?: string | null;
   gender?: ('male' | 'female' | 'nonbinary' | 'undisclosed') | null;
   dateOfBirth?: string | null;
@@ -444,11 +447,11 @@ export interface User {
       }[]
     | null;
   /**
-   * Order history is automatically managed by the system
+   * Order history is automatically managed by the system. Deleted orders will show as unavailable.
    */
   orderHistory?:
     | {
-        order: string | Order;
+        order?: (string | null) | Order;
         id?: string | null;
       }[]
     | null;
@@ -665,6 +668,8 @@ export interface Promotion {
   createdAt: string;
 }
 /**
+ * ⚠️ Only Super Admins can delete orders. Regular admins should use "Cancelled" status for audit/compliance.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders".
  */
@@ -718,6 +723,9 @@ export interface Order {
      */
     actualDeliveryDate?: string | null;
   };
+  /**
+   * Use "Cancelled" status instead of deleting orders. Orders cannot be deleted for compliance.
+   */
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   shippingAddress: {
     name: string;
