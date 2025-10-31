@@ -35,6 +35,17 @@ export default function ProductClient({
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [isWishlistClicked, setIsWishlistClicked] = useState(false)
   const [showCopiedTooltip, setShowCopiedTooltip] = useState(false)
+  const [productRating, setProductRating] = useState({
+    average: product.rating?.average || 0,
+    count: product.rating?.count || 0,
+    breakdown: product.rating?.breakdown || {
+      fiveStars: 0,
+      fourStars: 0,
+      threeStars: 0,
+      twoStars: 0,
+      oneStar: 0,
+    },
+  })
 
   const images = product.images || []
   const featuredImage = images.find((img: any) => img.isFeature) || images[0]
@@ -45,8 +56,26 @@ export default function ProductClient({
     ? Math.round(((originalPrice - product.salePrice) / originalPrice) * 100)
     : 0
 
+  // Check stock availability
+  const stock = product.inventory?.stock || 0
+  const trackInventory = product.inventory?.trackInventory ?? true
+  const lowStockThreshold = product.inventory?.lowStockThreshold || 10
+  const isOutOfStock = (trackInventory && stock <= 0) || product.status === 'out-of-stock'
+  const maxQuantity = trackInventory ? stock : 999
+
   const handleAddToCart = async () => {
     if (isAddingToCart) return
+
+    // Validate stock
+    if (isOutOfStock) {
+      alert('This product is currently out of stock')
+      return
+    }
+
+    if (trackInventory && quantity > stock) {
+      alert(`Only ${stock} items available in stock`)
+      return
+    }
 
     setIsAddingToCart(true)
     try {
@@ -61,6 +90,17 @@ export default function ProductClient({
 
   const handleBuyNow = async () => {
     if (isBuyingNow) return
+
+    // Validate stock
+    if (isOutOfStock) {
+      alert('This product is currently out of stock')
+      return
+    }
+
+    if (trackInventory && quantity > stock) {
+      alert(`Only ${stock} items available in stock`)
+      return
+    }
 
     setIsBuyingNow(true)
     try {
@@ -91,12 +131,32 @@ export default function ProductClient({
 
   const handleReviewSubmitted = async () => {
     setShowReviewForm(false)
-    // Refresh reviews
+    // Refresh reviews and product rating
     try {
-      const response = await fetch(`/api/products/${product.id}/reviews`)
-      if (response.ok) {
-        const data = await response.json()
-        setReviews(data.reviews)
+      // Fetch updated reviews
+      const reviewsResponse = await fetch(`/api/products/${product.id}/reviews`)
+      if (reviewsResponse.ok) {
+        const reviewsData = await reviewsResponse.json()
+        setReviews(reviewsData.reviews)
+      }
+
+      // Fetch updated product to get new rating
+      const productResponse = await fetch(`/api/products/${product.id}`)
+      if (productResponse.ok) {
+        const productData = await productResponse.json()
+        if (productData.rating) {
+          setProductRating({
+            average: productData.rating.average || 0,
+            count: productData.rating.count || 0,
+            breakdown: productData.rating.breakdown || {
+              fiveStars: 0,
+              fourStars: 0,
+              threeStars: 0,
+              twoStars: 0,
+              oneStar: 0,
+            },
+          })
+        }
       }
     } catch (error) {
       console.error('Error refreshing reviews:', error)
@@ -272,10 +332,7 @@ export default function ProductClient({
 
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 pr-16">{product.title}</h1>
-            <StarRating
-              rating={Math.round(product.rating?.average || 0)}
-              count={product.rating?.count || 0}
-            />
+            <StarRating rating={Math.round(productRating.average)} count={productRating.count} />
           </div>
 
           {/* Price */}
@@ -308,25 +365,54 @@ export default function ProductClient({
             <span className="text-sm text-gray-600">Free Shipping on orders 10 days+</span>
           </div>
 
-          {/* Quantity Selector */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center border border-gray-300 rounded-lg">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="px-4 py-2 hover:bg-gray-100 transition-colors"
-                disabled={quantity <= 1}
-              >
-                -
-              </button>
-              <span className="px-4 py-2 font-medium min-w-[3rem] text-center">{quantity}</span>
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="px-4 py-2 hover:bg-gray-100 transition-colors"
-              >
-                +
-              </button>
+          {/* Stock Status Display */}
+          {trackInventory && (
+            <div className="flex items-center gap-2">
+              {isOutOfStock ? (
+                <div className="flex items-center gap-2 text-red-600">
+                  <div className="w-3 h-3 rounded-full bg-red-600"></div>
+                  <span className="font-semibold">Out of Stock</span>
+                </div>
+              ) : stock <= lowStockThreshold ? (
+                <div className="flex items-center gap-2 text-orange-600">
+                  <div className="w-3 h-3 rounded-full bg-orange-600"></div>
+                  <span className="font-semibold">Only {stock} left in stock!</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-green-600">
+                  <div className="w-3 h-3 rounded-full bg-green-600"></div>
+                  <span className="font-semibold">{stock} units available</span>
+                </div>
+              )}
             </div>
-          </div>
+          )}
+
+          {/* Quantity Selector */}
+          {!isOutOfStock && (
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-medium text-gray-700">Quantity:</label>
+              <div className="flex items-center border border-gray-300 rounded-lg">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={quantity <= 1}
+                >
+                  -
+                </button>
+                <span className="px-4 py-2 font-medium min-w-[3rem] text-center">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
+                  className="px-4 py-2 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={quantity >= maxQuantity}
+                >
+                  +
+                </button>
+              </div>
+              {trackInventory && quantity >= maxQuantity && (
+                <span className="text-sm text-orange-600">Maximum available</span>
+              )}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="space-y-3">
@@ -564,11 +650,11 @@ export default function ProductClient({
           </div>
 
           <div className="lg:col-span-1">
-            {activeTab === 'reviews' && product.rating && product.rating.count > 0 ? (
+            {activeTab === 'reviews' && productRating.count > 0 ? (
               <ReviewSummary
-                average={product.rating.average}
-                count={product.rating.count}
-                breakdown={product.rating.breakdown}
+                average={productRating.average}
+                count={productRating.count}
+                breakdown={productRating.breakdown}
               />
             ) : (
               <div className="bg-gray-50 p-6 rounded-lg">

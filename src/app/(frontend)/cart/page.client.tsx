@@ -135,6 +135,14 @@ export default function CartClient() {
                     product.images?.find((img) => img.isFeature) || product.images?.[0]
                   const displayPrice = product.salePrice || product.price
 
+                  // Stock validation
+                  const stock = product.inventory?.stock || 0
+                  const trackInventory = product.inventory?.trackInventory ?? true
+                  const isOutOfStock =
+                    (trackInventory && stock <= 0) || product.status === 'out-of-stock'
+                  const maxAvailable = trackInventory ? stock : 999
+                  const exceedsStock = trackInventory && item.quantity > stock
+
                   return (
                     <div key={`${item.product.id}-${item.variantSku}`} className="p-4">
                       <div className="flex justify-between items-start">
@@ -159,9 +167,18 @@ export default function CartClient() {
                                 {product.title}
                               </h3>
                               <p className="text-sm text-gray-600">{product.brand}</p>
-                              {/* <p className="text-sm text-gray-600">
-                                {product.shortDescription || 'Premium quality product'}
-                              </p> */}
+
+                              {/* Stock warnings */}
+                              {isOutOfStock && (
+                                <p className="text-sm text-red-600 font-semibold mt-1">
+                                  ⚠️ Out of stock
+                                </p>
+                              )}
+                              {!isOutOfStock && exceedsStock && (
+                                <p className="text-sm text-orange-600 font-semibold mt-1">
+                                  ⚠️ Only {stock} available
+                                </p>
+                              )}
                             </div>
                             <div className="text-lg font-semibold text-gray-900 mt-2">
                               ₦{displayPrice.toLocaleString()}
@@ -197,7 +214,8 @@ export default function CartClient() {
                                   item.quantity - 1,
                                 )
                               }
-                              className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 rounded-l-full"
+                              disabled={item.quantity <= 1}
+                              className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 rounded-l-full disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                 <path
@@ -219,7 +237,10 @@ export default function CartClient() {
                                   item.quantity + 1,
                                 )
                               }
-                              className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 rounded-r-full"
+                              disabled={
+                                isOutOfStock || (trackInventory && item.quantity >= maxAvailable)
+                              }
+                              className="w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-800 rounded-r-full disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                 <path

@@ -53,7 +53,7 @@ const queryProductReviews = cache(async (productId: string) => {
   const result = await payload.find({
     collection: 'reviews',
     where: {
-      and: [{ product: { equals: productId } }, { status: { equals: 'approved' } }],
+      product: { equals: productId },
     },
     depth: 1,
     sort: '-createdAt',
