@@ -440,7 +440,7 @@ export default function CategoryClient({ category }: CategoryClientProps) {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 auto-rows-fr">
+              <div className="mx-8 grid grid-cols-1 lg:grid-cols-3 gap-8 auto-rows-fr">
                 {filteredProducts.map((product) => (
                   <div key={product.id} className="h-full">
                     <ProductCard

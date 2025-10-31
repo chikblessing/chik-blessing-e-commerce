@@ -1,7 +1,10 @@
 // collections/Orders.ts
 import type { CollectionConfig, AccessArgs, CollectionBeforeChangeHook } from 'payload'
 import { authenticated } from '../access/authenticated'
+import { isAdmin, isSuperAdmin } from '../access/isAdmin'
 import type { CustomUser } from '../types/User'
+import { sendOrderConfirmationEmail } from '../lib/email/sendOrderConfirmation'
+import { sendAdminNotification } from '../lib/email/sendAdminNotification'
 
 // Define reusable utility types for clarity
 type UserAccessArgs = AccessArgs<CustomUser>
@@ -110,26 +113,23 @@ export const Orders: CollectionConfig = {
     read: ({ req: { user } }: UserAccessArgs) => {
       const customUser = user as CustomUser | undefined
 
-      if (customUser?.role === 'admin') return true
+      // Admins and super admins can read all orders
+      if (customUser?.role === 'admin' || customUser?.role === 'super_admin') return true
+
+      // Customers can only read their own orders
       return {
-        id: {
+        customer: {
           equals: customUser?.id,
         },
       }
     },
-    update: ({ req: { user } }: UserAccessArgs) => {
-      const customUser = user as CustomUser | undefined
-      // Only admins can update orders
-      return customUser?.role === 'admin'
-    },
-    delete: ({ req: { user } }: UserAccessArgs) => {
-      const customUser = user as CustomUser | undefined
-      // Only admins can delete orders
-      return customUser?.role === 'admin'
-    },
+    update: isAdmin,
+    delete: isSuperAdmin,
   },
   admin: {
     useAsTitle: 'orderNumber',
+    description:
+      '⚠️ Only Super Admins can delete orders. Regular admins should use "Cancelled" status for audit/compliance.',
     // 🟢 UPDATE: Added delivery dates to the default view
     defaultColumns: [
       'orderNumber',
@@ -321,6 +321,10 @@ export const Orders: CollectionConfig = {
       ],
       defaultValue: 'pending',
       required: true,
+      admin: {
+        description:
+          'Use "Cancelled" status instead of deleting orders. Orders cannot be deleted for compliance.',
+      },
       access: {
         update: ({ req }) => {
           // 💡 FIX: Define the type of the user object in the function signature
@@ -453,10 +457,82 @@ export const Orders: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [snapshotProductData],
+    beforeDelete: [
+      async ({ req, id }) => {
+        // Log super admin deletions for audit trail
+        const user = req.user as CustomUser | undefined
+        if (user) {
+          req.payload.logger.warn({
+            msg: `⚠️ ORDER DELETED by Super Admin`,
+            orderId: id,
+            deletedBy: user.email,
+            deletedByUserId: user.id,
+            timestamp: new Date().toISOString(),
+          })
+        }
+        return true
+      },
+    ],
     afterChange: [
       async ({ doc, req, operation, previousDoc }) => {
-        // Update user order history on create
+        // Send order confirmation email and update user order history on create
         if (operation === 'create') {
+          // Send order confirmation email to customer
+          try {
+            const customerEmail = doc.shippingAddress?.email || doc.guestEmail
+            const customerName = doc.shippingAddress?.name || 'Customer'
+
+            if (customerEmail) {
+              await sendOrderConfirmationEmail({
+                to: customerEmail,
+                orderNumber: doc.orderNumber,
+                customerName,
+                order: doc,
+              })
+
+              req.payload.logger.info({
+                msg: 'Order confirmation email sent',
+                orderId: doc.id,
+                orderNumber: doc.orderNumber,
+                email: customerEmail,
+              })
+            }
+          } catch (error) {
+            req.payload.logger.error({
+              msg: 'Failed to send order confirmation email',
+              orderId: doc.id,
+              error,
+            })
+            // Don't throw - order creation should succeed even if email fails
+          }
+
+          // Send admin notification about new order
+          try {
+            await sendAdminNotification({
+              type: 'order',
+              subject: `New Order: ${doc.orderNumber}`,
+              title: 'New Order Received',
+              details: {
+                'Order Number': doc.orderNumber,
+                Customer: doc.shippingAddress?.name || 'Guest',
+                Email: doc.shippingAddress?.email || doc.guestEmail,
+                'Total Amount': `₦${doc.total.toLocaleString()}`,
+                'Payment Status': doc.paymentStatus,
+                'Order Status': doc.status,
+                Items: doc.items?.length || 0,
+                Date: new Date(doc.createdAt).toLocaleString(),
+              },
+              actionUrl: `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/admin/collections/orders/${doc.id}`,
+            })
+          } catch (error) {
+            req.payload.logger.error({
+              msg: 'Failed to send admin notification for new order',
+              orderId: doc.id,
+              error,
+            })
+          }
+
+          // Update user order history
           try {
             const customerId = typeof doc.customer === 'string' ? doc.customer : doc.customer.id
 
@@ -470,7 +546,7 @@ export const Orders: CollectionConfig = {
             // Only update if the user has an orderHistory field
             if ('orderHistory' in user) {
               const orderHistory = (user as any).orderHistory || []
-              orderHistory.push(doc.id)
+              orderHistory.push({ order: doc.id })
 
               await req.payload.update({
                 collection: 'users',

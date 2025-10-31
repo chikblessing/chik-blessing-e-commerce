@@ -276,7 +276,7 @@ export default function ProductsClient({ initialProducts, categories }: Products
 
         {/* Products Grid */}
         <div className="lg:col-span-3">
-          <div className="mb-6">
+          <div className="mx-auto mb-6">
             <h3 className="text-3xl font-bold">Featured Products</h3>
             <p className="text-gray-600 mt-2">
               Showing {filteredProducts.length} of {initialProducts.length} products
@@ -296,8 +296,9 @@ export default function ProductsClient({ initialProducts, categories }: Products
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="mx-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {filteredProducts.map((product) => (
+                <div key={product.id} className="h-full">
                 <ProductCard
                   key={product.id}
                   product={product as any}
@@ -306,8 +307,10 @@ export default function ProductsClient({ initialProducts, categories }: Products
                   }
                   onAddToCart={handleAddToCart}
                 />
+                </div>
               ))}
             </div>
+             
           )}
         </div>
       </div>

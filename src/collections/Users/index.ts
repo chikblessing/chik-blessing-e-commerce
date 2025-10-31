@@ -17,7 +17,8 @@ export const Users: CollectionConfig = {
   slug: 'users',
   access: {
     admin: ({ req: { user } }) => {
-      return !!user && (user as CustomUser).role === 'admin'
+      const customUser = user as CustomUser | undefined
+      return !!customUser && (customUser.role === 'admin' || customUser.role === 'super_admin')
     },
     create: () => true,
     delete: authenticated,
@@ -106,15 +107,21 @@ export const Users: CollectionConfig = {
       name: 'role',
       type: 'select',
       options: [
+        { label: 'Super Admin', value: 'super_admin' },
         { label: 'Admin', value: 'admin' },
         { label: 'Customer', value: 'customer' },
       ],
       defaultValue: 'customer',
       required: true,
+      admin: {
+        description:
+          'Super Admin: Full access including order deletion. Admin: Standard admin access. Customer: Regular user.',
+      },
       access: {
         update: ({ req: { user } }) => {
-          // Only authenticated users can update role
-          return Boolean(user)
+          const customUser = user as CustomUser | undefined
+          // Only super admins can change roles to prevent privilege escalation
+          return customUser?.role === 'super_admin'
         },
       },
     },
@@ -281,14 +288,16 @@ export const Users: CollectionConfig = {
       admin: {
         condition: (data) => (data as CustomUser).role === 'customer',
         readOnly: true,
-        description: 'Order history is automatically managed by the system',
+        description:
+          'Order history is automatically managed by the system. Deleted orders will show as unavailable.',
       },
       fields: [
         {
           name: 'order',
           type: 'relationship',
           relationTo: 'orders',
-          required: true,
+          required: false, // Allow null if order is deleted
+          hasMany: false,
         },
       ],
     },
