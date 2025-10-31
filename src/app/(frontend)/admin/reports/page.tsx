@@ -433,7 +433,7 @@ export default function AdminReportsPage() {
                     {(reportType === 'sales'
                       ? reportData.topProducts
                       : reportData.topCustomers
-                    ).map((item: unknown, index: number) => (
+                    ).map((item: any, index: number) => (
                       <tr key={index}>
                         {reportType === 'sales' ? (
                           <>
