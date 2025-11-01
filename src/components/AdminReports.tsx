@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 
 export default function AdminReports() {
   return (
@@ -9,7 +10,7 @@ export default function AdminReports() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Sales Reports */}
-        <a
+        <Link
           href="/admin/collections/orders"
           className="block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-50 transition-colors"
         >
@@ -30,10 +31,10 @@ export default function AdminReports() {
             <h2 className="text-xl font-semibold">Orders</h2>
           </div>
           <p className="text-gray-600">View and manage all orders</p>
-        </a>
+        </Link>
 
         {/* Product Reports */}
-        <a
+        <Link
           href="/admin/collections/product-reports"
           className="block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-50 transition-colors"
         >
@@ -54,10 +55,10 @@ export default function AdminReports() {
             <h2 className="text-xl font-semibold">Product Reports</h2>
           </div>
           <p className="text-gray-600">Review reported products</p>
-        </a>
+        </Link>
 
         {/* Reviews */}
-        <a
+        <Link
           href="/admin/collections/reviews"
           className="block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-50 transition-colors"
         >
@@ -78,10 +79,10 @@ export default function AdminReports() {
             <h2 className="text-xl font-semibold">Reviews</h2>
           </div>
           <p className="text-gray-600">Manage customer reviews</p>
-        </a>
+        </Link>
 
         {/* Users */}
-        <a
+        <Link
           href="/admin/collections/users"
           className="block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-50 transition-colors"
         >
@@ -102,10 +103,10 @@ export default function AdminReports() {
             <h2 className="text-xl font-semibold">Users</h2>
           </div>
           <p className="text-gray-600">Manage user accounts</p>
-        </a>
+        </Link>
 
         {/* Products */}
-        <a
+        <Link
           href="/admin/collections/products"
           className="block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-50 transition-colors"
         >
@@ -126,10 +127,10 @@ export default function AdminReports() {
             <h2 className="text-xl font-semibold">Products</h2>
           </div>
           <p className="text-gray-600">Manage product catalog</p>
-        </a>
+        </Link>
 
         {/* Contact Submissions */}
-        <a
+        <Link
           href="/admin/collections/contact-submissions"
           className="block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-50 transition-colors"
         >
@@ -150,7 +151,7 @@ export default function AdminReports() {
             <h2 className="text-xl font-semibold">Contact Submissions</h2>
           </div>
           <p className="text-gray-600">View contact form submissions</p>
-        </a>
+        </Link>
       </div>
 
       <div className="mt-12">
