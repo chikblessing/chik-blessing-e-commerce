@@ -205,6 +205,50 @@ export async function POST(request: NextRequest) {
       shipping,
     } = body
 
+    // Validate stock availability for all items
+    const stockValidationErrors: string[] = []
+
+    for (const item of items) {
+      const product = await payload.findByID({
+        collection: 'products',
+        id: item.product.id,
+      })
+
+      if (!product) {
+        stockValidationErrors.push(`Product "${item.product.title}" not found`)
+        continue
+      }
+
+      // Check if product tracks inventory
+      if (product.inventory?.trackInventory) {
+        const availableStock = product.inventory.stock || 0
+
+        // Check if out of stock
+        if (availableStock === 0 || product.status === 'out-of-stock') {
+          stockValidationErrors.push(`"${product.title}" is out of stock`)
+          continue
+        }
+
+        // Check if requested quantity exceeds available stock
+        if (item.quantity > availableStock) {
+          stockValidationErrors.push(
+            `Only ${availableStock} units of "${product.title}" available (requested ${item.quantity})`,
+          )
+        }
+      }
+    }
+
+    // If there are stock validation errors, return them
+    if (stockValidationErrors.length > 0) {
+      return NextResponse.json(
+        {
+          error: 'Stock validation failed',
+          details: stockValidationErrors,
+        },
+        { status: 400 },
+      )
+    }
+
     // Get user from cookie
     const cookieStore = await cookies()
     const token = cookieStore.get('payload-token')?.value
@@ -265,6 +309,31 @@ export async function POST(request: NextRequest) {
         },
       },
     })
+
+    // Deduct stock for each item (only for products that track inventory)
+    for (const item of items) {
+      const product = await payload.findByID({
+        collection: 'products',
+        id: item.product.id,
+      })
+
+      if (product?.inventory?.trackInventory) {
+        const newStock = Math.max(0, (product.inventory.stock || 0) - item.quantity)
+
+        await payload.update({
+          collection: 'products',
+          id: item.product.id,
+          data: {
+            inventory: {
+              ...product.inventory,
+              stock: newStock,
+            },
+            // Auto-update status if stock reaches zero
+            status: newStock === 0 ? 'out-of-stock' : product.status,
+          },
+        })
+      }
+    }
 
     // Send order confirmation email
     await sendOrderConfirmationEmail(order, shippingAddress.email, items)

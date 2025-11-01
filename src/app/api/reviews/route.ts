@@ -17,18 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Rating must be between 1 and 5' }, { status: 400 })
     }
 
-    // Check if user already reviewed this product
-    const existingReview = await payload.find({
-      collection: 'reviews',
-      where: {
-        and: [{ product: { equals: product } }, { customer: { equals: customer } }],
-      },
-    })
-
-    if (existingReview.totalDocs > 0) {
-      return NextResponse.json({ error: 'You have already reviewed this product' }, { status: 400 })
-    }
-
+    // Create review - validation for purchase and duplicate check happens in collection hooks
     const review = await payload.create({
       collection: 'reviews',
       data: {
@@ -37,13 +26,15 @@ export async function POST(req: NextRequest) {
         title,
         comment,
         rating,
-        status: 'pending',
-      },
+      } as any, // Type assertion needed until Payload types are regenerated
     })
 
     return NextResponse.json({ success: true, review }, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating review:', error)
-    return NextResponse.json({ error: 'Failed to create review' }, { status: 500 })
+
+    // Return specific error message from collection hooks
+    const errorMessage = error?.message || 'Failed to create review'
+    return NextResponse.json({ error: errorMessage }, { status: 400 })
   }
 }

@@ -2,7 +2,6 @@
 import type { CollectionConfig, AccessArgs } from 'payload'
 import type { CustomUser } from '../types/User'
 
-import { authenticated } from '../access/authenticated'
 import { sendAdminNotification } from '../lib/email/sendAdminNotification'
 
 type UserAccessArgs = AccessArgs<CustomUser>
@@ -11,6 +10,8 @@ export const Reviews: CollectionConfig = {
   slug: 'reviews',
   access: {
     create: ({ req }) => {
+      // Only authenticated users can create reviews
+      // Additional validation in beforeChange hook checks if they purchased the product
       return !!req.user
     },
     read: () => true,
@@ -18,18 +19,24 @@ export const Reviews: CollectionConfig = {
       const customUser = user as CustomUser | undefined
 
       if (!customUser) return false
-      if (customUser.role === 'admin') return true
+      // Only admins can update reviews (for moderation purposes)
+      if (customUser.role === 'admin' || customUser.role === 'super_admin') return true
+      // Regular users can update their own reviews
       return {
         customer: {
           equals: customUser.id,
         },
       }
     },
-    delete: authenticated,
+    delete: ({ req: { user } }: UserAccessArgs) => {
+      const customUser = user as CustomUser | undefined
+      // Only admins can delete reviews
+      return customUser?.role === 'admin' || customUser?.role === 'super_admin'
+    },
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'product', 'customer', 'rating', 'status'],
+    defaultColumns: ['title', 'product', 'customer', 'rating', 'isVerifiedPurchase', 'createdAt'],
   },
   fields: [
     {
@@ -65,20 +72,7 @@ export const Reviews: CollectionConfig = {
       min: 1,
       max: 5,
     },
-    {
-      name: 'status',
-      type: 'select',
-      options: [
-        { label: 'Pending', value: 'pending' },
-        { label: 'Approved', value: 'approved' },
-        { label: 'Rejected', value: 'rejected' },
-      ],
-      defaultValue: 'pending',
-      required: true,
-      access: {
-        update: ({ req }) => !!req.user && (req.user as CustomUser).role === 'admin',
-      },
-    },
+
     {
       name: 'isVerifiedPurchase',
       type: 'checkbox',
@@ -101,18 +95,42 @@ export const Reviews: CollectionConfig = {
     beforeChange: [
       async ({ data, req, operation }) => {
         if (operation === 'create') {
+          // Check if user has purchased this product
           const orders = await req.payload.find({
             collection: 'orders',
             where: {
               and: [
                 { customer: { equals: data.customer } },
-                { status: { equals: 'delivered' } },
+                {
+                  or: [
+                    { status: { equals: 'delivered' } },
+                    { status: { equals: 'shipped' } },
+                    { paymentStatus: { equals: 'paid' } },
+                  ],
+                },
                 { 'items.product': { equals: data.product } },
               ],
             },
           })
 
-          data.isVerifiedPurchase = orders.totalDocs > 0
+          // Prevent review creation if user hasn't purchased the product
+          if (orders.totalDocs === 0) {
+            throw new Error('You can only review products you have purchased')
+          }
+
+          // Check if user already reviewed this product
+          const existingReview = await req.payload.find({
+            collection: 'reviews',
+            where: {
+              and: [{ customer: { equals: data.customer } }, { product: { equals: data.product } }],
+            },
+          })
+
+          if (existingReview.totalDocs > 0) {
+            throw new Error('You have already reviewed this product')
+          }
+
+          data.isVerifiedPurchase = true
         }
         return data
       },
@@ -148,8 +166,7 @@ export const Reviews: CollectionConfig = {
                 Rating: `${doc.rating}/5 ⭐`,
                 Title: doc.title,
                 Review: doc.comment?.substring(0, 100) + (doc.comment?.length > 100 ? '...' : ''),
-                'Verified Purchase': doc.isVerifiedPurchase ? 'Yes' : 'No',
-                Status: doc.status,
+                'Verified Purchase': doc.isVerifiedPurchase ? 'Yes ✓' : 'No',
                 Date: new Date(doc.createdAt).toLocaleString(),
               },
               actionUrl: `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/admin/collections/reviews/${doc.id}`,
@@ -185,7 +202,7 @@ async function updateProductRating(payload: any, productId: string): Promise<voi
     const reviews = await payload.find({
       collection: 'reviews',
       where: {
-        and: [{ product: { equals: productId } }, { status: { equals: 'approved' } }],
+        product: { equals: productId },
       },
       limit: 1000,
     })

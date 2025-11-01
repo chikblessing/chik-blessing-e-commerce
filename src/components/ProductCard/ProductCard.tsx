@@ -26,6 +26,11 @@ interface Product {
     count: number
   }
   status: string
+  inventory?: {
+    stock: number
+    trackInventory: boolean
+    lowStockThreshold?: number
+  }
 }
 
 interface ProductCardProps {
@@ -68,11 +73,22 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
   }
 
   const handleAddToCart = () => {
+    // Check stock before adding to cart
+    if (isOutOfStock) {
+      return
+    }
     onAddToCart?.(product.id)
   }
 
   const featuredImage = product.images?.find((img) => img.isFeature) || product.images?.[0]
   const displayPrice = product.salePrice || product.price
+
+  // Stock management
+  const stock = product.inventory?.stock || 0
+  const trackInventory = product.inventory?.trackInventory ?? true
+  const lowStockThreshold = product.inventory?.lowStockThreshold || 10
+  const isOutOfStock = (trackInventory && stock <= 0) || product.status === 'out-of-stock'
+  const isLowStock = trackInventory && stock > 0 && stock <= lowStockThreshold
 
   return (
     <div className="relative border border-[#084710] rounded-xl bg-white px-3 py-2 sm:px-3 sm:py-2 flex flex-col h-full max-w-[320px] sm:max-w-none mx-4 sm:mx-auto">
@@ -86,6 +102,20 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
             height={150}
           />
           <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-xl sm:rounded-2xl pointer-events-none"></div>
+
+          {/* Out of Stock Badge */}
+          {isOutOfStock && (
+            <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded-md text-xs font-semibold">
+              OUT OF STOCK
+            </div>
+          )}
+
+          {/* Low Stock Badge */}
+          {!isOutOfStock && isLowStock && (
+            <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded-md text-xs font-semibold">
+              ONLY {stock} LEFT
+            </div>
+          )}
         </div>
       </Link>
 
@@ -122,7 +152,13 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
 
       <div className="flex-grow">
         <div className="text-xs sm:text-sm text-muted-foreground mb-1">
-          {product.status === 'out-of-stock' ? 'Out of stock' : 'Available'}
+          {isOutOfStock ? (
+            <span className="text-red-600 font-semibold">Out of stock</span>
+          ) : isLowStock ? (
+            <span className="text-orange-600 font-semibold">Low stock - {stock} left</span>
+          ) : (
+            'Available'
+          )}
         </div>
         <Link href={`/product/${product.slug}`}>
           <h3
@@ -138,7 +174,10 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
 
       <button
         onClick={handleAddToCart}
-        className="w-full flex justify-center gap-2 items-center py-2 sm:py-2.5 px-4 bg-[#084710] hover:bg-black rounded-lg transition-colors duration-200 mt-2"
+        disabled={isOutOfStock}
+        className={`w-full flex justify-center gap-2 items-center py-2 sm:py-2.5 px-4 rounded-lg transition-colors duration-200 mt-2 ${
+          isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#084710] hover:bg-black'
+        }`}
       >
         <span>
           <svg
@@ -152,7 +191,9 @@ export default function ProductCard({ product, onWishlistToggle, onAddToCart }: 
             <path d="M4.00436 6.41686L0.761719 3.17422L2.17593 1.76001L5.41857 5.00265H20.6603C21.2126 5.00265 21.6603 5.45037 21.6603 6.00265C21.6603 6.09997 21.6461 6.19678 21.6182 6.29L19.2182 14.29C19.0913 14.713 18.7019 15.0027 18.2603 15.0027H6.00436V17.0027H17.0044V19.0027H5.00436C4.45207 19.0027 4.00436 18.5549 4.00436 18.0027V6.41686ZM6.00436 7.00265V13.0027H17.5163L19.3163 7.00265H6.00436ZM5.50436 23.0027C4.67593 23.0027 4.00436 22.3311 4.00436 21.5027C4.00436 20.6742 4.67593 20.0027 5.50436 20.0027C6.33279 20.0027 7.00436 20.6742 7.00436 21.5027C7.00436 22.3311 6.33279 23.0027 5.50436 23.0027ZM17.5044 23.0027C16.6759 23.0027 16.0044 22.3311 16.0044 21.5027C16.0044 20.6742 16.6759 20.0027 17.5044 20.0027C18.3328 20.0027 19.0044 20.6742 19.0044 21.5027C19.0044 22.3311 18.3328 23.0027 17.5044 23.0027Z"></path>
           </svg>
         </span>
-        <span className="text-white text-sm sm:text-base">Add to Cart</span>
+        <span className="text-white text-sm sm:text-base">
+          {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+        </span>
       </button>
     </div>
   )

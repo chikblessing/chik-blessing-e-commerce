@@ -475,6 +475,61 @@ export const Orders: CollectionConfig = {
     ],
     afterChange: [
       async ({ doc, req, operation, previousDoc }) => {
+        // Restore stock when order is cancelled
+        if (
+          operation === 'update' &&
+          doc.status === 'cancelled' &&
+          previousDoc?.status !== 'cancelled'
+        ) {
+          try {
+            // Restore stock for each item
+            for (const item of doc.items) {
+              const productId = typeof item.product === 'string' ? item.product : item.product?.id
+
+              if (productId) {
+                const product = await req.payload.findByID({
+                  collection: 'products',
+                  id: productId,
+                })
+
+                if (product?.inventory?.trackInventory) {
+                  const restoredStock = (product.inventory.stock || 0) + item.quantity
+
+                  await req.payload.update({
+                    collection: 'products',
+                    id: productId,
+                    data: {
+                      inventory: {
+                        ...product.inventory,
+                        stock: restoredStock,
+                      },
+                      // Restore status to published if it was out of stock
+                      status:
+                        product.status === 'out-of-stock' && restoredStock > 0
+                          ? 'published'
+                          : product.status,
+                    },
+                  })
+
+                  req.payload.logger.info({
+                    msg: 'Stock restored after order cancellation',
+                    orderId: doc.id,
+                    productId,
+                    quantityRestored: item.quantity,
+                    newStock: restoredStock,
+                  })
+                }
+              }
+            }
+          } catch (error) {
+            req.payload.logger.error({
+              msg: 'Error restoring stock after order cancellation',
+              orderId: doc.id,
+              error,
+            })
+          }
+        }
+
         // Send order confirmation email and update user order history on create
         if (operation === 'create') {
           // Send order confirmation email to customer

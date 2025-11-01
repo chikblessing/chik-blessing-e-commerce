@@ -13,6 +13,7 @@ export const Products: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'price', 'status', 'inventory.stock'],
+    listSearchableFields: ['title', 'brand', 'inventory.sku'],
   },
   fields: [
     {
@@ -152,12 +153,21 @@ export const Products: CollectionConfig = {
           type: 'number',
           required: true,
           min: 0,
+          admin: {
+            description: 'Current stock quantity',
+            components: {
+              Field: '@/components/StockField',
+            },
+          },
         },
         {
           name: 'lowStockThreshold',
           type: 'number',
           defaultValue: 10,
           min: 0,
+          admin: {
+            description: 'Alert when stock falls below this number',
+          },
         },
         {
           name: 'sku',
@@ -297,7 +307,7 @@ export const Products: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [
-      ({ data }) => {
+      ({ data, operation }) => {
         if (!data.slug && data.title) {
           data.slug = data.title
             .toLowerCase()
@@ -305,8 +315,14 @@ export const Products: CollectionConfig = {
             .replace(/(^-|-$)/g, '')
         }
 
-        if (data.inventory?.stock === 0) {
-          data.status = 'out-of-stock'
+        // Auto-update status based on stock
+        if (data.inventory?.trackInventory) {
+          if (data.inventory?.stock === 0) {
+            data.status = 'out-of-stock'
+          } else if (data.status === 'out-of-stock' && data.inventory?.stock > 0) {
+            // Auto-restore to published if stock is replenished
+            data.status = 'published'
+          }
         }
 
         return data

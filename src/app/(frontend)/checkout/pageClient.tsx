@@ -124,7 +124,14 @@ export default function CheckoutClient() {
       })
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Checkout failed')
+      if (!res.ok) {
+        // Handle stock validation errors
+        if (data.details && Array.isArray(data.details)) {
+          const errorMessage = data.details.join('\n')
+          throw new Error(`Stock validation failed:\n${errorMessage}`)
+        }
+        throw new Error(data?.error || 'Checkout failed')
+      }
 
       if (paymentMethod === 'pickup') {
         clearCart()
