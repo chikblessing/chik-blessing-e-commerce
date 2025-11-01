@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
         title,
         comment,
         rating,
-      },
+      } as any, // Type assertion needed until Payload types are regenerated
     })
 
     return NextResponse.json({ success: true, review }, { status: 201 })
