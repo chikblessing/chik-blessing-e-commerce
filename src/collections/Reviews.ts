@@ -228,7 +228,7 @@ async function updateProductRating(payload: any, productId: string): Promise<voi
       return
     }
 
-    const ratings: number[] = reviews.docs.map((r: unknown) => r.rating)
+    const ratings: number[] = reviews.docs.map((r: any) => r.rating)
     const average =
       ratings.reduce((sum: number, rating: number) => sum + rating, 0) / ratings.length
 
