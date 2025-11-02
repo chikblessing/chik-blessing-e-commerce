@@ -14,13 +14,25 @@ export default async function AdminDashboardPage() {
     redirect('/admin/login')
   }
 
+  let user: any = null
+
   try {
-    const { user } = await payload.auth({ headers: { cookie: `payload-token=${token.value}` } })
+    // Verify user authentication
+    const headers = new Headers()
+    headers.set('cookie', `payload-token=${token.value}`)
+
+    const authResult = await payload.auth({ headers })
+    user = authResult.user
 
     if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
       redirect('/admin/login')
     }
+  } catch (error) {
+    console.error('Auth error:', error)
+    redirect('/admin/login')
+  }
 
+  try {
     // Fetch analytics data
     const now = new Date()
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
