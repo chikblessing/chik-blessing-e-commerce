@@ -135,7 +135,7 @@ export default function ProductsClient({ initialProducts, categories }: Products
     try {
       const variantSku = product.inventory?.sku || product.id
       await addToCart(product, variantSku, 1)
-      toast.success('Added to cart')
+      // Toast is handled by the Cart provider
     } catch (_error) {
       toast.error('Failed to add to cart')
     }
@@ -299,18 +299,17 @@ export default function ProductsClient({ initialProducts, categories }: Products
             <div className="mx-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {filteredProducts.map((product) => (
                 <div key={product.id} className="h-full">
-                <ProductCard
-                  key={product.id}
-                  product={product as any}
-                  onWishlistToggle={(productId, isInWishlist) =>
-                    handleWishlistToggle(productId, isInWishlist)
-                  }
-                  onAddToCart={handleAddToCart}
-                />
+                  <ProductCard
+                    key={product.id}
+                    product={product as any}
+                    onWishlistToggle={(productId, isInWishlist) =>
+                      handleWishlistToggle(productId, isInWishlist)
+                    }
+                    onAddToCart={handleAddToCart}
+                  />
                 </div>
               ))}
             </div>
-             
           )}
         </div>
       </div>
