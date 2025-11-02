@@ -301,7 +301,7 @@ export default function ProductsClient({ initialProducts, categories }: Products
                 <div key={product.id} className="h-full">
                   <ProductCard
                     key={product.id}
-                    product={product as unknown}
+                    product={product as any}
                     onWishlistToggle={(productId, isInWishlist) =>
                       handleWishlistToggle(productId, isInWishlist)
                     }
