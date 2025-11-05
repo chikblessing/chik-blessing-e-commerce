@@ -327,11 +327,9 @@ export const Orders: CollectionConfig = {
       },
       access: {
         update: ({ req }) => {
-          // 💡 FIX: Define the type of the user object in the function signature
           const user = req.user as CustomUser
-
-          // TypeScript now recognizes 'user.role'
-          return !!user && user.role === 'admin'
+          // Allow both admin and super_admin to update
+          return !!user && (user.role === 'admin' || user.role === 'super_admin')
         },
       },
     },
@@ -403,11 +401,9 @@ export const Orders: CollectionConfig = {
       required: true,
       access: {
         update: ({ req }) => {
-          // 💡 FIX: Define the type of the user object in the function signature
           const user = req.user as CustomUser
-
-          // TypeScript now recognizes 'user.role'
-          return !!user && user.role === 'admin'
+          // Allow both admin and super_admin to update
+          return !!user && (user.role === 'admin' || user.role === 'super_admin')
         },
       },
     },

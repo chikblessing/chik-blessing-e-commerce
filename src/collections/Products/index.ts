@@ -147,17 +147,41 @@ export const Products: CollectionConfig = {
     {
       name: 'inventory',
       type: 'group',
+      label: 'Inventory & Stock Management',
+      admin: {
+        description: 'Manage product inventory and stock levels',
+      },
       fields: [
+        {
+          name: 'sku',
+          type: 'text',
+          unique: true,
+          index: true,
+          required: true,
+          label: 'SKU',
+          admin: {
+            description: 'Stock Keeping Unit - Unique product identifier',
+          },
+        },
         {
           name: 'stock',
           type: 'number',
           required: true,
           min: 0,
+          defaultValue: 0,
+          label: 'Stock Quantity',
           admin: {
-            description: 'Current stock quantity',
-            components: {
-              Field: '@/components/StockField',
-            },
+            description: 'Current available stock quantity',
+            step: 1,
+          },
+        },
+        {
+          name: 'trackInventory',
+          type: 'checkbox',
+          defaultValue: true,
+          label: 'Track Inventory',
+          admin: {
+            description: 'Enable automatic stock tracking and deduction on orders',
           },
         },
         {
@@ -165,36 +189,30 @@ export const Products: CollectionConfig = {
           type: 'number',
           defaultValue: 10,
           min: 0,
+          label: 'Low Stock Alert Threshold',
           admin: {
-            description: 'Alert when stock falls below this number',
+            description: 'Get alerts when stock falls below this number',
           },
-        },
-        {
-          name: 'sku',
-          type: 'text',
-          unique: true,
-          index: true,
-          required: true,
-        },
-        {
-          name: 'trackInventory',
-          type: 'checkbox',
-          defaultValue: true,
         },
         {
           name: 'weight',
           type: 'number',
+          label: 'Weight (kg)',
           admin: {
-            description: 'Weight in kg for shipping calculations',
+            description: 'Product weight in kilograms for shipping calculations',
           },
         },
         {
           name: 'dimensions',
           type: 'group',
+          label: 'Dimensions (cm)',
+          admin: {
+            description: 'Product dimensions in centimeters',
+          },
           fields: [
-            { name: 'length', type: 'number' },
-            { name: 'width', type: 'number' },
-            { name: 'height', type: 'number' },
+            { name: 'length', type: 'number', label: 'Length' },
+            { name: 'width', type: 'number', label: 'Width' },
+            { name: 'height', type: 'number', label: 'Height' },
           ],
         },
       ],
@@ -307,7 +325,7 @@ export const Products: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [
-      ({ data, operation }) => {
+      ({ data }) => {
         if (!data.slug && data.title) {
           data.slug = data.title
             .toLowerCase()

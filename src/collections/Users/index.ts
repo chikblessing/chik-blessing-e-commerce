@@ -25,7 +25,8 @@ export const Users: CollectionConfig = {
     read: ({ req: { user } }: UserAccessArgs) => {
       const customUser = user as CustomUser | undefined
 
-      if (customUser?.role === 'admin') return true
+      // Allow both admin and super_admin to read all users
+      if (customUser?.role === 'admin' || customUser?.role === 'super_admin') return true
       return {
         id: {
           equals: customUser?.id,
@@ -35,7 +36,8 @@ export const Users: CollectionConfig = {
     update: ({ req: { user } }: UserAccessArgs) => {
       const customUser = user as CustomUser | undefined
 
-      if (customUser?.role === 'admin') return true
+      // Allow both admin and super_admin to update all users
+      if (customUser?.role === 'admin' || customUser?.role === 'super_admin') return true
       return {
         id: {
           equals: customUser?.id,
@@ -233,8 +235,12 @@ export const Users: CollectionConfig = {
         read: ({ req: { user }, doc }) => {
           const currentUser = user as CustomUser | undefined
 
-          // Use the asserted user object for both checks
-          return currentUser?.id === doc?.id || currentUser?.role === 'admin'
+          // Allow user to read their own cart, or admins/super_admins to read any cart
+          return (
+            currentUser?.id === doc?.id ||
+            currentUser?.role === 'admin' ||
+            currentUser?.role === 'super_admin'
+          )
         },
       },
       fields: [
@@ -311,8 +317,11 @@ export const Users: CollectionConfig = {
       },
       access: {
         update: ({ req: { user } }) => {
-          // Only admins can suspend/unsuspend users
-          return Boolean(user && (user as CustomUser).role === 'admin')
+          // Only admins and super_admins can suspend/unsuspend users
+          const customUser = user as CustomUser | undefined
+          return Boolean(
+            customUser && (customUser.role === 'admin' || customUser.role === 'super_admin'),
+          )
         },
       },
     },

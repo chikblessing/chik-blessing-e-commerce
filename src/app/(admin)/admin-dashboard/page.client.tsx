@@ -19,7 +19,7 @@ interface Order {
   shippingAddress?: {
     name?: string
   }
-  guestEmail?: string
+  guestEmail?: string | null
   createdAt: string
   status: string
   total: number
