@@ -549,15 +549,33 @@ export interface Product {
   categories: (string | Category)[];
   brand: string;
   status: 'draft' | 'published' | 'out-of-stock';
+  /**
+   * Manage product inventory and stock levels
+   */
   inventory: {
-    stock: number;
-    lowStockThreshold?: number | null;
+    /**
+     * Stock Keeping Unit - Unique product identifier
+     */
     sku: string;
+    /**
+     * Current available stock quantity
+     */
+    stock: number;
+    /**
+     * Enable automatic stock tracking and deduction on orders
+     */
     trackInventory?: boolean | null;
     /**
-     * Weight in kg for shipping calculations
+     * Get alerts when stock falls below this number
+     */
+    lowStockThreshold?: number | null;
+    /**
+     * Product weight in kilograms for shipping calculations
      */
     weight?: number | null;
+    /**
+     * Product dimensions in centimeters
+     */
     dimensions?: {
       length?: number | null;
       width?: number | null;
@@ -1120,7 +1138,6 @@ export interface Review {
   title: string;
   comment: string;
   rating: number;
-  status: 'pending' | 'approved' | 'rejected';
   /**
    * Automatically set if customer purchased this product
    */
@@ -1854,10 +1871,10 @@ export interface ProductsSelect<T extends boolean = true> {
   inventory?:
     | T
     | {
-        stock?: T;
-        lowStockThreshold?: T;
         sku?: T;
+        stock?: T;
         trackInventory?: T;
+        lowStockThreshold?: T;
         weight?: T;
         dimensions?:
           | T
@@ -2013,7 +2030,6 @@ export interface ReviewsSelect<T extends boolean = true> {
   title?: T;
   comment?: T;
   rating?: T;
-  status?: T;
   isVerifiedPurchase?: T;
   helpfulVotes?: T;
   updatedAt?: T;

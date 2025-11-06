@@ -2,9 +2,9 @@
 
 import React from 'react'
 
-export default function DashboardLink() {
+const AdminDashboardLink: React.FC = () => {
   return (
-    <div style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>
+    <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
       <a
         href="/admin-dashboard"
         target="_blank"
@@ -13,7 +13,7 @@ export default function DashboardLink() {
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
-          padding: '1rem 1.25rem',
+          padding: '0.75rem 1rem',
           backgroundColor: '#3b82f6',
           color: 'white',
           borderRadius: '0.5rem',
@@ -49,7 +49,7 @@ export default function DashboardLink() {
           <rect x="14" y="14" width="7" height="7" />
           <rect x="3" y="14" width="7" height="7" />
         </svg>
-        <span>📊 Analytics Dashboard</span>
+        <span>Analytics Dashboard</span>
         <svg
           width="16"
           height="16"
@@ -69,3 +69,5 @@ export default function DashboardLink() {
     </div>
   )
 }
+
+export default AdminDashboardLink
