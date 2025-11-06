@@ -574,17 +574,96 @@ export default function ProductClient({
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Product Overview</h3>
-                  <div className="prose max-w-none">
-                    {product.description && typeof product.description === 'string' ? (
-                      <p className="text-gray-700 leading-relaxed">{product.description}</p>
+                  <div className="prose max-w-none text-gray-700 leading-relaxed">
+                    {product.description ? (
+                      typeof product.description === 'string' ? (
+                        <p>{product.description}</p>
+                      ) : (
+                        <div>
+                          {product.description.root?.children?.map((node: any, index: number) => {
+                            if (node.type === 'paragraph') {
+                              return (
+                                <p key={index} className="mb-4">
+                                  {node.children?.map((child: any, childIndex: number) => {
+                                    if (child.type === 'text') {
+                                      let text = <span key={childIndex}>{child.text}</span>
+                                      if (child.bold)
+                                        text = <strong key={childIndex}>{child.text}</strong>
+                                      if (child.italic)
+                                        text = <em key={childIndex}>{child.text}</em>
+                                      if (child.underline)
+                                        text = <u key={childIndex}>{child.text}</u>
+                                      return text
+                                    }
+                                    return null
+                                  })}
+                                </p>
+                              )
+                            }
+                            if (node.type === 'heading') {
+                              const headingText = node.children
+                                ?.map((child: any) => child.text)
+                                .join('')
+                              const headingLevel = node.tag || 'h3'
+                              if (headingLevel === 'h1')
+                                return (
+                                  <h1 key={index} className="text-2xl font-bold mb-2">
+                                    {headingText}
+                                  </h1>
+                                )
+                              if (headingLevel === 'h2')
+                                return (
+                                  <h2 key={index} className="text-xl font-semibold mb-2">
+                                    {headingText}
+                                  </h2>
+                                )
+                              if (headingLevel === 'h3')
+                                return (
+                                  <h3 key={index} className="text-lg font-semibold mb-2">
+                                    {headingText}
+                                  </h3>
+                                )
+                              if (headingLevel === 'h4')
+                                return (
+                                  <h4 key={index} className="font-semibold mb-2">
+                                    {headingText}
+                                  </h4>
+                                )
+                              return (
+                                <h5 key={index} className="font-semibold mb-2">
+                                  {headingText}
+                                </h5>
+                              )
+                            }
+                            if (node.type === 'list') {
+                              const isBullet = node.listType === 'bullet'
+                              return isBullet ? (
+                                <ul key={index} className="list-disc ml-6 mb-4">
+                                  {node.children?.map((item: any, itemIndex: number) => (
+                                    <li key={itemIndex}>
+                                      {item.children?.map((child: any) => child.text).join('')}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <ol key={index} className="list-decimal ml-6 mb-4">
+                                  {node.children?.map((item: any, itemIndex: number) => (
+                                    <li key={itemIndex}>
+                                      {item.children?.map((child: any) => child.text).join('')}
+                                    </li>
+                                  ))}
+                                </ol>
+                              )
+                            }
+                            return null
+                          })}
+                        </div>
+                      )
                     ) : (
-                      <div className="text-gray-700 leading-relaxed">
-                        {/* Handle rich text content */}
-                        <p>
-                          {product.shortDescription ||
-                            'Premium quality product with excellent features.'}
-                        </p>
-                      </div>
+                      <p>
+                        {product.shortDescription ||
+                          'Premium quality product with excellent features.'}
+                      </p>
                     )}
                   </div>
                 </div>
