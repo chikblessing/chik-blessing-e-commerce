@@ -50,7 +50,7 @@ interface DashboardData {
 }
 
 export default function DashboardClient({ data }: { data: DashboardData }) {
-  const { overview, ordersByStatus, ordersByPayment, recentOrders, lowStockProducts } = data
+  const { overview, ordersByStatus, recentOrders, lowStockProducts } = data
 
   const formatCurrency = (amount: number) => `₦${amount.toLocaleString()}`
   const formatDate = (dateString: string) =>
@@ -61,113 +61,282 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
     })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
-      {/* Top Navigation */}
-      <div className="bg-white border-b shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/admin"
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                <span className="font-medium">Admin Panel</span>
-              </Link>
-            </div>
-          </div>
+    <div className="min-h-screen bg-[#f8f9fc]">
+      {/* Sidebar */}
+      <div className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 flex flex-col">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900">Chik Store</h2>
+          <p className="text-xs text-gray-500 mt-1">Admin Dashboard</p>
+        </div>
+
+        <nav className="flex-1 p-4 space-y-1">
+          <Link
+            href="/admin-dashboard"
+            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
+            Dashboard
+          </Link>
+
+          <Link
+            href="/admin/collections/products"
+            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+              />
+            </svg>
+            Products
+          </Link>
+
+          <Link
+            href="/admin/collections/orders"
+            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
+            </svg>
+            Orders
+          </Link>
+
+          <Link
+            href="/admin/collections/users"
+            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
+            Customers
+          </Link>
+
+          <Link
+            href="/admin/collections/reviews"
+            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+              />
+            </svg>
+            Reviews
+          </Link>
+        </nav>
+
+        <div className="p-4 border-t border-gray-200">
+          <Link
+            href="/admin"
+            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            Admin Panel
+          </Link>
         </div>
       </div>
 
-      <div className="max-w-7xlmx-auto px-6 py-8">
-        <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Analytics Dashboard
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Real-time insights</p>
+      {/* Main Content */}
+      <div className="ml-64 p-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Sales Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-1">Period: August 2023</p>
         </div>
 
-        <div className="mt-8">
-          {/* Metrics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <MetricCard
-              title="Revenue (30d)"
-              value={formatCurrency(overview.revenueThisMonth)}
-              subtitle={`Week: ${formatCurrency(overview.revenueThisWeek)}`}
-              icon="💰"
-              gradient="from-green-500 to-emerald-600"
-            />
-            <MetricCard
-              title="Orders (30d)"
-              value={overview.ordersThisMonth.toString()}
-              subtitle={`Week: ${overview.ordersThisWeek}`}
-              icon="🛍️"
-              gradient="from-blue-500 to-indigo-600"
-            />
-            <MetricCard
-              title="Products"
-              value={overview.totalProducts.toString()}
-              subtitle={`${overview.outOfStockProducts} out of stock`}
-              icon="📦"
-              gradient="from-purple-500 to-pink-600"
-            />
-            <MetricCard
-              title="Customers"
-              value={overview.totalUsers.toString()}
-              subtitle={`+${overview.newUsersThisMonth} this month`}
-              icon="👥"
-              gradient="from-orange-500 to-red-600"
-            />
-          </div>
-
-          {/* Alerts */}
-          {(overview.lowStockProducts > 0 ||
-            (overview.pendingReports && overview.pendingReports > 0)) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {overview.lowStockProducts > 0 && (
-                <AlertCard
-                  title="Low Stock Alert"
-                  message={`${overview.lowStockProducts} products need restocking`}
-                  link="/admin/collections/products"
-                  linkText="View Products"
-                  color="orange"
-                />
-              )}
-              {overview.pendingReports && overview.pendingReports > 0 && (
-                <AlertCard
-                  title="Pending Reports"
-                  message={`${overview.pendingReports} product reviews need review`}
-                  link="/admin/collections/product-reviews"
-                  linkText="Review Reports"
-                  color="red"
-                />
-              )}
-            </div>
-          )}
-
-          {/* Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <ChartCard title="Orders by Status" data={ordersByStatus} />
-            <ChartCard title="Payment Status" data={ordersByPayment} />
-          </div>
-
-          {/* Recent Orders Table */}
-          <OrdersTable
-            orders={recentOrders}
-            formatCurrency={formatCurrency}
-            formatDate={formatDate}
+        {/* Top Metrics */}
+        <div className="grid grid-cols-3 gap-6 mb-8">
+          <MetricCard
+            title="Total Revenue"
+            value={formatCurrency(overview.revenueThisMonth)}
+            change="+8.2%"
+            positive={true}
           />
-
-          {/* Low StockProducts Table */}
-          {lowStockProducts.length > 0 && <LowStockProductsTable products={lowStockProducts} />}
+          <MetricCard
+            title="Total Customer"
+            value={overview.totalUsers.toString()}
+            change="+1.3%"
+            positive={false}
+          />
+          <MetricCard
+            title="Total Profit"
+            value={formatCurrency(overview.revenueThisMonth * 0.3)}
+            change="+4.5%"
+            positive={true}
+          />
         </div>
+
+        <div className="grid grid-cols-3 gap-6">
+          {/* Left Column - Charts */}
+          <div className="col-span-2 space-y-6">
+            {/* Spending Statistics */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Spending Statistic</h3>
+                  <div className="flex items-baseline gap-2 mt-2">
+                    <span className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(overview.revenueThisWeek)}
+                    </span>
+                    <span className="text-sm text-green-600 font-medium">+8.2%</span>
+                    <span className="text-xs text-gray-500">Total income in week</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 rounded">
+                    Day
+                  </button>
+                  <button className="px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 rounded">
+                    Week
+                  </button>
+                  <button className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded">
+                    Year
+                  </button>
+                </div>
+              </div>
+              <BarChart data={ordersByStatus} />
+            </div>
+
+            {/* Recent Transactions */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Customer Transaction</h3>
+                <Link
+                  href="/admin/collections/orders"
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  View All →
+                </Link>
+              </div>
+              <TransactionTable orders={recentOrders.slice(0, 5)} formatDate={formatDate} />
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Customer by Country */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer by Country</h3>
+              <p className="text-xs text-gray-500 mb-4">Period: August 2023</p>
+              <div className="space-y-4">
+                <CountryItem country="Nigeria" value={overview.totalUsers} percentage={85} />
+                <CountryItem
+                  country="Ghana"
+                  value={Math.floor(overview.totalUsers * 0.1)}
+                  percentage={10}
+                />
+                <CountryItem
+                  country="Others"
+                  value={Math.floor(overview.totalUsers * 0.05)}
+                  percentage={5}
+                />
+              </div>
+            </div>
+
+            {/* Social Source */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Social Source</h3>
+                  <p className="text-xs text-gray-500">Total traffic in a week</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <SocialItem platform="Website" visitors={2305} customers={3304} sales={443} />
+                <SocialItem platform="Instagram" visitors={1205} customers={1504} sales={243} />
+                <SocialItem platform="Facebook" visitors={905} customers={804} sales={143} />
+              </div>
+              <button className="w-full mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                See more statistic
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Low Stock Alert */}
+        {lowStockProducts.length > 0 && (
+          <div className="mt-6 bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Low Stock Products</h3>
+              <Link
+                href="/admin/collections/products"
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Manage Stock →
+              </Link>
+            </div>
+            <div className="grid grid-cols-4 gap-4">
+              {lowStockProducts.slice(0, 4).map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/admin/collections/products/${product.id}`}
+                  className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all"
+                >
+                  <p className="font-medium text-gray-900 text-sm mb-2 truncate">{product.title}</p>
+                  <p className="text-xs text-gray-500 mb-2">
+                    SKU: {product.inventory?.sku || 'N/A'}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`px-2 py-1 text-xs font-bold rounded-full ${
+                        product.inventory?.stock === 0
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-orange-100 text-orange-800'
+                      }`}
+                    >
+                      {product.inventory?.stock || 0} left
+                    </span>
+                    <svg
+                      className="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -176,235 +345,167 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
 function MetricCard({
   title,
   value,
-  subtitle,
-  icon,
-  gradient,
+  change,
+  positive,
 }: {
   title: string
   value: string
-  subtitle: string
-  icon: string
-  gradient: string
+  change: string
+  positive: boolean
 }) {
   return (
-    <div
-      className={`bg-gradient-to-br ${gradient} rounded-2xl shadow-lg p-6 text-white hover:shadow-2xl transition-all transform hover:-translate-y-1`}
-    >
-      <div className="text-4xl mb-3">{icon}</div>
-      <h3 className="text-sm font-semibold uppercase tracking-wide opacity-90">{title}</h3>
-      <p className="text-4xl font-bold mb-2">{value}</p>
-      <p className="text-sm opacity-80">{subtitle}</p>
-    </div>
-  )
-}
-
-function AlertCard({
-  title,
-  message,
-  link,
-  linkText,
-  color,
-}: {
-  title: string
-  message: string
-  link: string
-  linkText: string
-  color: 'red' | 'orange'
-}) {
-  const colors: Record<'red' | 'orange', string> = {
-    red: 'from-red-50 to-red-50 border-red-500 bg-red-900 text-red-600 hover:text-red-800',
-    orange:
-      'from-orange-50 to-red-50 border-orange-550 bg-orange-900 text-orange-600 hover:text-orange-800',
-  }
-
-  const colorClasses = colors[color].split(' ')
-
-  return (
-    <div
-      className={`bg-gradient-to-r ${colorClasses[0]} ${colorClasses[1]} ${colorClasses[2]} rounded-2xl p-6 shadow-md`}
-    >
-      <h3 className={`text-lg font-bold ${colorClasses[3]} mb-2`}>{title}</h3>
-      <p className={`${colorClasses[6]} ${colorClasses[7]} mb-3`}>{message}</p>
-      <Link
-        href={link}
-        className={`inline-flex items-center gap-2 ${colorClasses[3]} font-semibold text-sm`}
-      >
-        {linkText}
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </Link>
-    </div>
-  )
-}
-
-function ChartCard({ title, data }: { title: string; data: Record<string, number> }) {
-  const colors: Record<string, string> = {
-    pending: 'bg-yellow-500',
-    processing: 'bg-blue-500',
-    shipped: 'bg-purple-500',
-    delivered: 'bg-green-500',
-    cancelled: 'bg-red-500',
-    failed: 'bg-red-500',
-    refunded: 'bg-gray-500',
-    paid: 'bg-green-500',
-  }
-
-  const total = Object.values(data).reduce((a: number, b: number) => a + b, 0)
-
-  return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-      <h3 className="text-lg font-bold text-gray-900 mb-6">{title}</h3>
-      <div className="space-y-4">
-        {Object.entries(data).map(([status, count]) => {
-          const percentage = total > 0 ? (count / total) * 100 : 0
-          return (
-            <div key={status}>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="capitalize font-medium">{status}</span>
-                <span className="font-bold">{count}</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-3">
-                <div
-                  className={`${colors[status]} h-3 rounded-full transition-all`}
-                  style={{ width: `${percentage}%` }}
-                />
-              </div>
-            </div>
-          )
-        })}
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <p className="text-sm text-gray-600 mb-2">{title}</p>
+      <div className="flex items-baseline gap-2">
+        <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
+        <span className={`text-sm font-medium ${positive ? 'text-green-600' : 'text-red-600'}`}>
+          {change}
+        </span>
       </div>
     </div>
   )
 }
 
-function OrdersTable({
+function BarChart({ data }: { data: Record<string, number> }) {
+  const maxValue = Math.max(...Object.values(data))
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+  return (
+    <div className="flex items-end justify-between gap-4 h-48">
+      {days.map((day, index) => {
+        const value = Object.values(data)[index] || 0
+        const height = (value / maxValue) * 100
+        return (
+          <div key={day} className="flex-1 flex flex-col items-center gap-2">
+            <div className="w-full flex items-end justify-center h-40">
+              <div
+                className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg relative group"
+                style={{ height: `${height}%`, minHeight: '20px' }}
+              >
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded">
+                  {value}
+                </div>
+              </div>
+            </div>
+            <span className="text-xs text-gray-600">{day}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function TransactionTable({
   orders,
-  formatCurrency,
   formatDate,
 }: {
   orders: Order[]
-  formatCurrency: (amount: number) => string
-  formatDate: (dateString: string) => string
+  formatDate: (date: string) => string
 }) {
   return (
-    <div className="bg-white rounded-2xl shadow-lg mb-8 border overflow-hidden">
-      <div className="p-6 border-b bg-gradient-to-r from-gray-50 to-white flex justify-between items-center">
-        <h3 className="text-lg font-bold">Recent Orders</h3>
-        <Link
-          href="/admin/collections/orders"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm"
-        >
-          View All →
-        </Link>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">
-                Order #
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">
-                Customer
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">
-                Date
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">
-                Status
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">
-                Total
-              </th>
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-gray-200">
+            <th className="text-left text-xs font-medium text-gray-500 pb-3">Customer</th>
+            <th className="text-left text-xs font-medium text-gray-500 pb-3">Date</th>
+            <th className="text-left text-xs font-medium text-gray-500 pb-3">Status</th>
+            <th className="text-left text-xs font-medium text-gray-500 pb-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((order) => (
+            <tr key={order.id} className="border-b border-gray-100">
+              <td className="py-3">
+                <p className="text-sm font-medium text-gray-900">
+                  {order.shippingAddress?.name || 'Guest'}
+                </p>
+                <p className="text-xs text-gray-500">{order.guestEmail || 'N/A'}</p>
+              </td>
+              <td className="py-3 text-sm text-gray-600">{formatDate(order.createdAt)}</td>
+              <td className="py-3">
+                <span
+                  className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    order.status === 'delivered'
+                      ? 'bg-green-100 text-green-700'
+                      : order.status === 'shipped'
+                        ? 'bg-blue-100 text-blue-700'
+                        : order.status === 'cancelled'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                  }`}
+                >
+                  {order.status}
+                </span>
+              </td>
+              <td className="py-3">
+                <Link
+                  href={`/admin/collections/orders/${order.id}`}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                    />
+                  </svg>
+                </Link>
+              </td>
             </tr>
-          </thead>
-          <tbody className="divide-y">
-            {orders.map((order) => (
-              <tr key={order.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm font-semibold">{order.orderNumber}</td>
-                <td className="px-6 py-4 text-sm">
-                  {order.shippingAddress?.name || order.guestEmail || 'Guest'}
-                </td>
-                <td className="px-6 py-4 text-sm">{formatDate(order.createdAt)}</td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`px-3 py-1 text-xs font-bold rounded-full ${
-                      order.status === 'delivered'
-                        ? 'bg-green-100 text-green-800'
-                        : order.status === 'shipped'
-                          ? 'bg-blue-100 text-blue-800'
-                          : order.status === 'cancelled'
-                            ? 'bg-red-100 text-red-800'
-                            : order.status === 'processing'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : ''
-                    }`}
-                  >
-                    {order.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm font-bold">{formatCurrency(order.total)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function CountryItem({
+  country,
+  value,
+  percentage,
+}: {
+  country: string
+  value: number
+  percentage: number
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-gray-700">{country}</span>
+        <span className="text-sm font-semibold text-gray-900">{value}</span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div
+          className="bg-blue-600 h-2 rounded-full transition-all"
+          style={{ width: `${percentage}%` }}
+        />
       </div>
     </div>
   )
 }
 
-function LowStockProductsTable({ products }: { products: Product[] }) {
+function SocialItem({
+  platform,
+  visitors,
+  customers,
+  sales,
+}: {
+  platform: string
+  visitors: number
+  customers: number
+  sales: number
+}) {
   return (
-    <div className="bg-white rounded-2xl shadow-lg border overflow-hidden">
-      <div className="p-6 border-b bg-gradient-to-r from-orange-50 to-white flex justify-between items-center">
-        <h3 className="text-lg font-bold">Low Stock Products</h3>
-        <Link
-          href="/admin/collections/products"
-          className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium text-sm"
-        >
-          Manage Stock →
-        </Link>
+    <div className="flex items-center justify-between py-2">
+      <div>
+        <p className="text-sm font-medium text-gray-900">{platform}</p>
+        <p className="text-xs text-gray-500">{visitors.toLocaleString()} visitors</p>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">
-                Product
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">SKU</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">
-                Stock
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase">
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {products.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm font-semibold">{product.title}</td>
-                <td className="px-6 py-4 text-sm font-mono">{product.inventory?.sku || 'N/A'}</td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`px-3 py-1 text-xs font-bold rounded-full ${
-                      product.inventory?.stock === 0
-                        ? 'bg-red-100 text-red-800'
-                        : (product.inventory?.stock ?? 0) <= 5
-                          ? 'bg-orange-100 text-orange-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                    }`}
-                  >
-                    {product.inventory?.stock || 0} units
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm capitalize">{product.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="text-right">
+        <p className="text-sm font-semibold text-gray-900">{customers.toLocaleString()}</p>
+        <p className="text-xs text-gray-500">{sales} sales</p>
       </div>
     </div>
   )

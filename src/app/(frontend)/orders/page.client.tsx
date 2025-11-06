@@ -30,7 +30,7 @@ interface Order {
 }
 
 export default function OrdersClient() {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,7 +44,11 @@ export default function OrdersClient() {
 
     const fetchOrders = async () => {
       try {
-        const res = await fetch('/api/orders')
+        const res = await fetch('/api/orders', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
         if (!res.ok) throw new Error('Failed to fetch orders')
         const data = await res.json()
         setOrders(data.docs || [])
@@ -56,7 +60,7 @@ export default function OrdersClient() {
     }
 
     fetchOrders()
-  }, [user, router])
+  }, [user, token, router])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -266,7 +270,6 @@ export default function OrdersClient() {
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900 mb-1">{item.productTitle}</h3>
                       {item.sku && <p className="text-sm text-gray-600">SKU: {item.sku}</p>}
-                   
                     </div>
                     <div className="text-right">
                       <p className="text-gray-600 mb-1">
@@ -390,9 +393,7 @@ export default function OrdersClient() {
                 <p className="text-sm text-gray-600">
                   {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
                 </p>
-                <p className="text-lg font-bold text-gray-900">
-                  ₦{order.total.toLocaleString()}
-                </p>
+                <p className="text-lg font-bold text-gray-900">₦{order.total.toLocaleString()}</p>
               </div>
             </div>
           ))}
