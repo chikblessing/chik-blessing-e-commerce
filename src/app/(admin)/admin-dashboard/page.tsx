@@ -70,7 +70,7 @@ export default async function AdminDashboard() {
 
     // Get orders by payment status
     const ordersByPayment: Record<string, number> = {}
-    allOrders.docs.forEach((order: unknown) => {
+    allOrders.docs.forEach((order: any) => {
       const paymentStatus = order.paymentStatus || 'pending'
       ordersByPayment[paymentStatus] = (ordersByPayment[paymentStatus] || 0) + 1
     })
