@@ -1,18 +1,19 @@
 // collections/ShippingZones.ts
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../access/authenticated'
+import { isAdmin } from '../access/isAdmin'
 
 export const ShippingZones: CollectionConfig = {
   slug: 'shipping-zones',
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'baseRate', 'freeShippingThreshold', 'isActive'],
+    group: 'Commerce',
   },
   access: {
-    create: authenticated,
+    create: isAdmin,
     read: () => true, // Public read for checkout
-    update: authenticated,
-    delete: authenticated,
+    update: isAdmin,
+    delete: isAdmin,
   },
   fields: [
     {
