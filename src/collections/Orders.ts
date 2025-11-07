@@ -421,6 +421,19 @@ export const Orders: CollectionConfig = {
       },
     },
     {
+      name: 'adminNotes',
+      type: 'textarea',
+      admin: {
+        description:
+          'Internal notes for admins (e.g., reasons for cancellation, special handling instructions)',
+        position: 'sidebar',
+      },
+      access: {
+        read: isAdmin,
+        update: isAdmin,
+      },
+    },
+    {
       name: 'paidAt',
       type: 'date',
       admin: {
