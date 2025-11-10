@@ -6,6 +6,7 @@ import type {
 } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
+import { isSuperAdmin } from '../../access/isAdmin'
 
 import type { CustomUser } from '../../types/User'
 
@@ -20,8 +21,8 @@ export const Users: CollectionConfig = {
       const customUser = user as CustomUser | undefined
       return !!customUser && (customUser.role === 'admin' || customUser.role === 'super_admin')
     },
-    create: () => true,
-    delete: authenticated,
+    create: () => true, // Public registration for customers
+    delete: isSuperAdmin, // Only super admins can delete users
     read: ({ req: { user } }: UserAccessArgs) => {
       const customUser = user as CustomUser | undefined
 
@@ -33,11 +34,22 @@ export const Users: CollectionConfig = {
         },
       }
     },
-    update: ({ req: { user } }: UserAccessArgs) => {
+    update: ({ req: { user }, id }: UserAccessArgs) => {
       const customUser = user as CustomUser | undefined
 
-      // Allow both admin and super_admin to update all users
-      if (customUser?.role === 'admin' || customUser?.role === 'super_admin') return true
+      // Super admins can update all users
+      if (customUser?.role === 'super_admin') return true
+
+      // Regular admins can only update themselves
+      if (customUser?.role === 'admin') {
+        return {
+          id: {
+            equals: customUser?.id,
+          },
+        }
+      }
+
+      // Customers can only update themselves
       return {
         id: {
           equals: customUser?.id,
@@ -46,8 +58,10 @@ export const Users: CollectionConfig = {
     },
   },
   admin: {
-    defaultColumns: ['name', 'email', 'role'],
+    defaultColumns: ['name', 'email', 'role', 'suspended'],
     useAsTitle: 'name',
+    description:
+      '⚠️ Only Super Admins can create, update, or delete users. Regular admins can only suspend customers.',
   },
   auth: {
     verify: {
@@ -312,16 +326,24 @@ export const Users: CollectionConfig = {
       type: 'checkbox',
       defaultValue: false,
       admin: {
-        description: 'Suspend this user account to prevent login',
+        description:
+          'Suspend this user account to prevent login (Admins can only suspend customers)',
         position: 'sidebar',
       },
       access: {
-        update: ({ req: { user } }) => {
-          // Only admins and super_admins can suspend/unsuspend users
+        update: ({ req: { user }, doc }) => {
           const customUser = user as CustomUser | undefined
-          return Boolean(
-            customUser && (customUser.role === 'admin' || customUser.role === 'super_admin'),
-          )
+
+          // Super admins can suspend anyone
+          if (customUser?.role === 'super_admin') return true
+
+          // Regular admins can only suspend customers (not other admins or super admins)
+          if (customUser?.role === 'admin') {
+            const targetUser = doc as CustomUser | undefined
+            return targetUser?.role === 'customer'
+          }
+
+          return false
         },
       },
     },
