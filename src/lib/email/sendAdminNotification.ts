@@ -15,7 +15,7 @@ export async function sendAdminNotification({
 }: AdminNotificationParams) {
   try {
     const resendApiKey = process.env.RESEND_API_KEY
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@chikblessingglobal.com'
+    const adminEmail = process.env.ADMIN_EMAIL || 'noreply@chikblessing.com'
 
     if (!resendApiKey) {
       console.error('RESEND_API_KEY not configured')
