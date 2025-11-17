@@ -5,6 +5,8 @@ node_modules
 .env
 .next
 .vercel
+*.md
+!README.md
 
 # Payload default media upload directory
 public/media/
